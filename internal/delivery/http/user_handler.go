@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/mzhryns/titik-nol-backend/internal/domain"
+	"github.com/mzhryns/titik-nol-backend/internal/pkg/response"
 )
 
 type UserHandler struct {
@@ -28,45 +29,45 @@ func NewUserHandler(r *gin.Engine, us domain.UserUsecase) {
 func (h *UserHandler) Create(c *gin.Context) {
 	var user domain.User
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		response.BadRequest(c, "Invalid request", err.Error())
 		return
 	}
 
 	if err := h.UserUsecase.Create(c.Request.Context(), &user); err != nil {
 		if err == domain.ErrEmailAlreadyExists {
-			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			response.Error(c, http.StatusConflict, "Email already exists", err.Error(), nil)
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.InternalServerError(c, "Failed to create user", err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated, user)
+	response.Success(c, http.StatusCreated, "User created successfully", user)
 }
 
 func (h *UserHandler) GetByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		response.BadRequest(c, "Invalid user ID", "The provided ID is not a valid integer")
 		return
 	}
 
 	user, err := h.UserUsecase.GetByID(c.Request.Context(), uint(id))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		response.NotFound(c, "User not found")
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	response.Success(c, http.StatusOK, "User fetched successfully", user)
 }
 
 func (h *UserHandler) Fetch(c *gin.Context) {
 	users, err := h.UserUsecase.Fetch(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		response.InternalServerError(c, "Failed to fetch users", err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, users)
+	response.Success(c, http.StatusOK, "Users fetched successfully", users)
 }
