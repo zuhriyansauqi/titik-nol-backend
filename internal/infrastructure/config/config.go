@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/spf13/viper"
@@ -22,6 +22,9 @@ type Config struct {
 	DBMaxIdleConns    int           `mapstructure:"DB_MAX_IDLE_CONNS"`
 	DBMaxOpenConns    int           `mapstructure:"DB_MAX_OPEN_CONNS"`
 	DBConnMaxLifetime time.Duration `mapstructure:"DB_CONN_MAX_LIFETIME"`
+
+	LogLevel  string `mapstructure:"LOG_LEVEL"`
+	LogFormat string `mapstructure:"LOG_FORMAT"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -29,7 +32,7 @@ func LoadConfig() (*Config, error) {
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
-		log.Printf("Warning: .env file not found, using environment variables")
+		slog.Warn("Warning: .env file not found, using environment variables")
 	}
 
 	var config Config

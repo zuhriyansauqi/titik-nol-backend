@@ -3,7 +3,8 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"log"
+	"log/slog"
+	"time"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
@@ -19,7 +20,11 @@ func NewDatabase(cfg *config.Config) (*gorm.DB, error) {
 		cfg.DBHost, cfg.DBUser, cfg.DBPassword, cfg.DBName, cfg.DBPort, cfg.DBSSLMode, cfg.DBTimezone)
 
 	db, err := gorm.Open(gorm_postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger: &SlogLogger{
+			LogLevel:                  logger.Info,
+			SlowThreshold:             200 * time.Millisecond,
+			IgnoreRecordNotFoundError: true,
+		},
 	})
 	if err != nil {
 		return nil, err
@@ -34,7 +39,7 @@ func NewDatabase(cfg *config.Config) (*gorm.DB, error) {
 	sqlDB.SetMaxOpenConns(cfg.DBMaxOpenConns)
 	sqlDB.SetConnMaxLifetime(cfg.DBConnMaxLifetime)
 
-	log.Println("Database connection established")
+	slog.Info("Database connection established")
 
 	return db, nil
 }
@@ -56,6 +61,6 @@ func RunMigrations(db *sql.DB) error {
 		return err
 	}
 
-	log.Println("Migrations ran successfully")
+	slog.Info("Migrations ran successfully")
 	return nil
 }
