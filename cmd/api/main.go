@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/mzhryns/titik-nol-backend/internal/delivery/http"
-	"github.com/mzhryns/titik-nol-backend/internal/domain"
 	"github.com/mzhryns/titik-nol-backend/internal/infrastructure/config"
 	"github.com/mzhryns/titik-nol-backend/internal/infrastructure/database"
 	"github.com/mzhryns/titik-nol-backend/internal/repository"
@@ -25,10 +24,14 @@ func main() {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 
-	// 3. Auto Migration (Optional but helpful for boilerplate)
-	err = db.AutoMigrate(&domain.User{})
+	// 3. Database Migrations
+	sqlDB, err := db.DB()
 	if err != nil {
-		log.Fatalf("Failed to migrate database: %v", err)
+		log.Fatalf("Failed to get sql.DB: %v", err)
+	}
+
+	if err := database.RunMigrations(sqlDB); err != nil {
+		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
 	// 4. Initialize Repository
