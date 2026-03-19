@@ -1,6 +1,7 @@
 .PHONY: build run test test-v test-cover clean tidy lint \
        docker-up docker-down docker-build docker-logs \
-       migrate-up migrate-down migrate-create help
+       migrate-up migrate-down migrate-create \
+       vuln-check sec-scan docker-scan security help
 
 # ─── Build & Run ──────────────────────────────────────────
 build: ## Build the API binary
@@ -31,6 +32,19 @@ test-cover: ## Run tests with coverage report
 # ─── Linting ──────────────────────────────────────────────
 lint: ## Run golangci-lint
 	golangci-lint run
+
+# ─── Security ────────────────────────────────────────────
+vuln-check: ## Scan Go dependencies for known vulnerabilities (govulncheck)
+	go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+sec-scan: ## Static-analysis security scan on Go source (gosec)
+	go run github.com/securego/gosec/v2/cmd/gosec@latest ./...
+
+docker-scan: docker-build ## Scan Docker image for OS/lib CVEs (Trivy)
+	trivy image --severity HIGH,CRITICAL titik-nol-backend-api
+
+security: vuln-check sec-scan ## Run all security checks (vuln-check + sec-scan)
+	@echo "\n🔒 All security checks passed"
 
 # ─── Docker ───────────────────────────────────────────────
 docker-up: ## Start all Docker services in background
