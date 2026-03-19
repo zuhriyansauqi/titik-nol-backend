@@ -85,8 +85,9 @@ func main() {
 
 	// 11. Graceful Shutdown
 	srv := &http.Server{
-		Addr:    ":" + cfg.AppPort,
-		Handler: r.Handler(),
+		Addr:              ":" + cfg.AppPort,
+		Handler:           r.Handler(),
+		ReadHeaderTimeout: 10 * time.Second,
 	}
 
 	go func() {
