@@ -8,6 +8,7 @@ import (
 	"github.com/mzhryns/titik-nol-backend/internal/infrastructure/config"
 )
 
+// Initialize sets up the global slog logger based on config.
 func Initialize(cfg *config.Config) {
 	var level slog.Level
 	switch strings.ToLower(cfg.LogLevel) {
@@ -34,6 +35,7 @@ func Initialize(cfg *config.Config) {
 		handler = slog.NewTextHandler(os.Stdout, opts)
 	}
 
-	logger := slog.New(handler)
+	logger := slog.New(NewContextHandler(handler))
 	slog.SetDefault(logger)
 }
+

@@ -10,8 +10,8 @@ import (
 type Response struct {
 	Success bool        `json:"success"`
 	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
-	Meta    interface{} `json:"meta,omitempty"`
+	Data    any `json:"data,omitempty"`
+	Meta    any `json:"meta,omitempty"`
 	Error   *ErrorBody  `json:"error,omitempty"`
 }
 
@@ -32,7 +32,7 @@ type FieldFailure struct {
 }
 
 // Success sends a standard success response
-func Success(c *gin.Context, status int, message string, data interface{}) {
+func Success(c *gin.Context, status int, message string, data any) {
 	c.JSON(status, Response{
 		Success: true,
 		Message: message,
@@ -41,7 +41,7 @@ func Success(c *gin.Context, status int, message string, data interface{}) {
 }
 
 // SuccessWithMeta sends a standard success response with metadata
-func SuccessWithMeta(c *gin.Context, status int, message string, data interface{}, meta interface{}) {
+func SuccessWithMeta(c *gin.Context, status int, message string, data any, meta any) {
 	c.JSON(status, Response{
 		Success: true,
 		Message: message,

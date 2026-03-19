@@ -44,14 +44,14 @@ func NewDatabase(cfg *config.Config) (*gorm.DB, error) {
 	return db, nil
 }
 
-func RunMigrations(db *sql.DB) error {
+func RunMigrations(db *sql.DB, migrationsPath string) error {
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
 		return err
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations",
+		migrationsPath,
 		"postgres", driver)
 	if err != nil {
 		return err

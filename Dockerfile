@@ -29,6 +29,7 @@ RUN apk add --no-cache tzdata
 # Copy the binary and config
 COPY --from=builder /app/bin/api .
 COPY --from=builder /app/.env.example .env
+COPY --from=builder /app/migrations ./migrations
 
 # Expose port
 EXPOSE 8080

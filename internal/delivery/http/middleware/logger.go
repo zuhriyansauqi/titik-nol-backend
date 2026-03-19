@@ -26,6 +26,7 @@ func Logger() gin.HandlerFunc {
 			slog.String("ip", c.ClientIP()),
 			slog.Duration("latency", latency),
 			slog.String("user-agent", c.Request.UserAgent()),
+			// Note: request_id is automatically injected by ContextHandler via context
 		}
 
 		if len(c.Errors) > 0 {

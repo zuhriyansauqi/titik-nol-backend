@@ -1,22 +1,63 @@
-.PHONY: build run test clean docker-up docker-down lint
+.PHONY: build run test test-v test-cover clean tidy lint \
+       docker-up docker-down docker-build docker-logs \
+       migrate-up migrate-down migrate-create help
 
-build:
+# ─── Build & Run ──────────────────────────────────────────
+build: ## Build the API binary
 	go build -o bin/api cmd/api/main.go
 
-run:
+run: ## Run the API locally
 	go run cmd/api/main.go
 
-test:
-	go test -v ./...
+clean: ## Remove build artifacts
+	rm -rf bin/ coverage.out
 
-clean:
-	rm -rf bin/
+tidy: ## Tidy and verify Go modules
+	go mod tidy
+	go mod verify
 
-docker-up:
+# ─── Testing ──────────────────────────────────────────────
+test: ## Run all tests
+	go test ./...
+
+test-v: ## Run all tests with verbose output
+	go test -v -count=1 ./...
+
+test-cover: ## Run tests with coverage report
+	go test -coverprofile=coverage.out ./...
+	go tool cover -func=coverage.out
+	@echo "\n📊 Open HTML report with: go tool cover -html=coverage.out"
+
+# ─── Linting ──────────────────────────────────────────────
+lint: ## Run golangci-lint
+	golangci-lint run
+
+# ─── Docker ───────────────────────────────────────────────
+docker-up: ## Start all Docker services in background
 	docker compose up -d
 
-docker-down:
+docker-down: ## Stop and remove Docker services
 	docker compose down
 
-lint:
-	golangci-lint run
+docker-build: ## Build Docker image from scratch
+	docker compose build --no-cache
+
+docker-logs: ## Tail Docker service logs
+	docker compose logs -f
+
+# ─── Migrations ───────────────────────────────────────────
+migrate-up: ## Run all pending migrations
+	go run cmd/api/main.go migrate up
+
+migrate-down: ## Rollback the last migration
+	go run cmd/api/main.go migrate down
+
+migrate-create: ## Create a new migration (usage: make migrate-create name=<name>)
+	@if [ -z "$(name)" ]; then echo "Usage: make migrate-create name=<migration_name>"; exit 1; fi
+	migrate create -ext sql -dir migrations -seq $(name)
+
+# ─── Help ─────────────────────────────────────────────────
+help: ## Show this help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+

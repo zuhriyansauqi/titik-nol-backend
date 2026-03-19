@@ -1,12 +1,15 @@
 package http
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/mzhryns/titik-nol-backend/internal/domain"
 	"github.com/mzhryns/titik-nol-backend/internal/pkg/response"
+	"gorm.io/gorm"
 )
 
 type UserHandler struct {
@@ -34,7 +37,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 	}
 
 	if err := h.UserUsecase.Create(c.Request.Context(), &user); err != nil {
-		if err == domain.ErrEmailAlreadyExists {
+		if errors.Is(err, domain.ErrEmailAlreadyExists) {
 			response.Error(c, http.StatusConflict, "Email already exists", err.Error(), nil)
 			return
 		}
@@ -47,15 +50,19 @@ func (h *UserHandler) Create(c *gin.Context) {
 
 func (h *UserHandler) GetByID(c *gin.Context) {
 	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
+	id, err := uuid.Parse(idStr)
 	if err != nil {
-		response.BadRequest(c, "Invalid user ID", "The provided ID is not a valid integer")
+		response.BadRequest(c, "Invalid user ID", "The provided ID is not a valid UUID")
 		return
 	}
 
-	user, err := h.UserUsecase.GetByID(c.Request.Context(), uint(id))
+	user, err := h.UserUsecase.GetByID(c.Request.Context(), id)
 	if err != nil {
-		response.NotFound(c, "User not found")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			response.NotFound(c, "User not found")
+			return
+		}
+		response.InternalServerError(c, "Failed to fetch user", err.Error())
 		return
 	}
 
@@ -63,11 +70,32 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 }
 
 func (h *UserHandler) Fetch(c *gin.Context) {
-	users, err := h.UserUsecase.Fetch(c.Request.Context())
+	page := 1
+	perPage := 20
+
+	if p := c.Query("page"); p != "" {
+		if v, err := strconv.Atoi(p); err == nil && v > 0 {
+			page = v
+		}
+	}
+	if pp := c.Query("per_page"); pp != "" {
+		if v, err := strconv.Atoi(pp); err == nil && v > 0 && v <= 100 {
+			perPage = v
+		}
+	}
+
+	params := domain.PaginationParams{Page: page, PerPage: perPage}
+
+	result, err := h.UserUsecase.Fetch(c.Request.Context(), params)
 	if err != nil {
 		response.InternalServerError(c, "Failed to fetch users", err.Error())
 		return
 	}
 
-	response.Success(c, http.StatusOK, "Users fetched successfully", users)
+	response.SuccessWithMeta(c, http.StatusOK, "Users fetched successfully", result.Items, map[string]int{
+		"page":        result.Page,
+		"per_page":    result.PerPage,
+		"total_items": result.TotalItems,
+		"total_pages": result.TotalPages,
+	})
 }

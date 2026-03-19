@@ -1,15 +1,22 @@
 package main
 
 import (
+	"context"
 	"log/slog"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mzhryns/titik-nol-backend/internal/delivery/http"
+	delivery "github.com/mzhryns/titik-nol-backend/internal/delivery/http"
 	"github.com/mzhryns/titik-nol-backend/internal/delivery/http/middleware"
 	"github.com/mzhryns/titik-nol-backend/internal/infrastructure/config"
 	"github.com/mzhryns/titik-nol-backend/internal/infrastructure/database"
 	"github.com/mzhryns/titik-nol-backend/internal/infrastructure/logger"
+	"github.com/mzhryns/titik-nol-backend/internal/pkg/google"
+	"github.com/mzhryns/titik-nol-backend/internal/pkg/jwt"
 	"github.com/mzhryns/titik-nol-backend/internal/repository"
 	"github.com/mzhryns/titik-nol-backend/internal/usecase"
 )
@@ -18,44 +25,53 @@ func main() {
 	// 1. Load Config
 	cfg, err := config.LoadConfig()
 	if err != nil {
+		// Note: logger not yet initialized, uses Go's default handler
 		slog.Error("Failed to load config", "error", err)
 		os.Exit(1)
 	}
 
-	// 1.1 Initialize Logger
+	// 2. Initialize Logger (must be early, before any other slog calls)
 	logger.Initialize(cfg)
 
-	// 2. Initialize Database
+	// 3. Initialize Database
 	db, err := database.NewDatabase(cfg)
 	if err != nil {
 		slog.Error("Failed to initialize database", "error", err)
 		os.Exit(1)
 	}
 
-	// 3. Database Migrations
+	// 4. Database Migrations
 	sqlDB, err := db.DB()
 	if err != nil {
 		slog.Error("Failed to get sql.DB", "error", err)
 		os.Exit(1)
 	}
 
-	if err := database.RunMigrations(sqlDB); err != nil {
+	if err := database.RunMigrations(sqlDB, "file://migrations"); err != nil {
 		slog.Error("Failed to run migrations", "error", err)
 		os.Exit(1)
 	}
 
-	// 4. Initialize Repository
+	// 5. Initialize Repository
 	userRepo := repository.NewUserRepository(db)
 
-	// 5. Initialize Usecase
-	userUsecase := usecase.NewUserUsecase(userRepo)
+	// 6. Initialize Services & Usecase
+	jwtService := jwt.NewJWTService(cfg.JWTSecret, cfg.JWTIssuer, cfg.JWTExpirySeconds)
+	googleSSO := google.NewGoogleSSOService(cfg.GoogleClientID)
 
-	// 6. Initialize Gin Engine
+	userUsecase := usecase.NewUserUsecase(userRepo)
+	authUsecase := usecase.NewAuthUsecase(userRepo, googleSSO, jwtService)
+
+	// 7. Initialize Middleware
+	authMiddleware := middleware.AuthMiddleware(jwtService)
+
+	// 8. Initialize Gin Engine
 	r := gin.New()
+	r.Use(middleware.RequestID())
 	r.Use(middleware.Logger())
 	r.Use(gin.Recovery())
 
-	// 7. Health Check
+	// 9. Health Check
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "UP",
@@ -63,13 +79,38 @@ func main() {
 		})
 	})
 
-	// 8. Setup Handlers
-	http.NewUserHandler(r, userUsecase)
+	// 10. Setup Handlers
+	delivery.NewUserHandler(r, userUsecase)
+	delivery.NewAuthHandler(r, authUsecase, authMiddleware)
 
-	// 9. Run Server
-	slog.Info("Starting server", "port", cfg.AppPort)
-	if err := r.Run(":" + cfg.AppPort); err != nil {
-		slog.Error("Failed to run server", "error", err)
+	// 11. Graceful Shutdown
+	srv := &http.Server{
+		Addr:    ":" + cfg.AppPort,
+		Handler: r.Handler(),
+	}
+
+	go func() {
+		slog.Info("Starting server", "port", cfg.AppPort)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("Failed to run server", "error", err)
+			os.Exit(1)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	slog.Info("Shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		slog.Error("Server forced to shutdown", "error", err)
 		os.Exit(1)
 	}
+
+	slog.Info("Server exited gracefully")
 }
+

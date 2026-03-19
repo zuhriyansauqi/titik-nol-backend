@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -25,6 +26,31 @@ type Config struct {
 
 	LogLevel  string `mapstructure:"LOG_LEVEL"`
 	LogFormat string `mapstructure:"LOG_FORMAT"`
+
+	JWTSecret        string `mapstructure:"JWT_SECRET"`
+	JWTIssuer        string `mapstructure:"JWT_ISSUER"`
+	JWTExpirySeconds int    `mapstructure:"JWT_EXPIRY_SECONDS"`
+	GoogleClientID   string `mapstructure:"GOOGLE_CLIENT_ID"`
+}
+
+func (c *Config) validate() error {
+	required := map[string]string{
+		"APP_PORT":         c.AppPort,
+		"DB_HOST":          c.DBHost,
+		"DB_PORT":          c.DBPort,
+		"DB_USER":          c.DBUser,
+		"DB_NAME":          c.DBName,
+		"JWT_SECRET":       c.JWTSecret,
+		"GOOGLE_CLIENT_ID": c.GoogleClientID,
+	}
+
+	for key, val := range required {
+		if val == "" {
+			return fmt.Errorf("required config %s is not set", key)
+		}
+	}
+
+	return nil
 }
 
 func LoadConfig() (*Config, error) {
@@ -40,5 +66,10 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 
+	if err := config.validate(); err != nil {
+		return nil, err
+	}
+
 	return &config, nil
 }
+
