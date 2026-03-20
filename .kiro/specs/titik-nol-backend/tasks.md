@@ -6,8 +6,8 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
 
 ## Tasks
 
-- [ ] 1. Domain Layer — Entitas, Interface, dan Error
-  - [ ] 1.1 Buat file `internal/domain/account.go` dengan struct `Account`, konstanta `AccountType`, interface `AccountRepository`, interface `AccountUsecase`, dan DTO (`CreateAccountRequest`, `UpdateAccountRequest`)
+- [x] 1. Domain Layer — Entitas, Interface, dan Error
+  - [x] 1.1 Buat file `internal/domain/account.go` dengan struct `Account`, konstanta `AccountType`, interface `AccountRepository`, interface `AccountUsecase`, dan DTO (`CreateAccountRequest`, `UpdateAccountRequest`)
     - Definisikan struct `Account` dengan GORM tags sesuai design (uuid PK, soft delete via `*time.Time`)
     - Definisikan `AccountType` (CASH, BANK, E_WALLET, CREDIT_CARD)
     - Definisikan interface `AccountRepository` dengan method: `WithTx`, `Create`, `Update`, `SoftDelete`, `GetByID`, `FetchByUserID`, `UpdateBalance`, `GetAllActive`
@@ -15,7 +15,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Definisikan DTO `CreateAccountRequest` dan `UpdateAccountRequest` dengan Gin binding tags
     - _Requirements: 2.1, 3.1, 3.3, 4.1, 5.1_
 
-  - [ ] 1.2 Buat file `internal/domain/transaction.go` dengan struct `Transaction`, konstanta `TransactionType`, interface `TransactionRepository`, interface `TransactionUsecase`, DTO, dan helper `CalculateBalanceDelta`
+  - [x] 1.2 Buat file `internal/domain/transaction.go` dengan struct `Transaction`, konstanta `TransactionType`, interface `TransactionRepository`, interface `TransactionUsecase`, DTO, dan helper `CalculateBalanceDelta`
     - Definisikan struct `Transaction` dengan GORM tags (uuid PK, nullable `CategoryID` via `*uuid.UUID`, soft delete)
     - Definisikan `TransactionType` (INCOME, EXPENSE, TRANSFER, ADJUSTMENT)
     - Definisikan `TransactionQueryParams` untuk filter dan paginasi
@@ -25,7 +25,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Implementasikan fungsi `CalculateBalanceDelta(txType, amount) int64` sesuai tabel delta di design
     - _Requirements: 6.1, 6.2, 6.3, 7.1, 8.1, 9.1_
 
-  - [ ] 1.3 Buat file `internal/domain/category.go` dengan struct `Category`, konstanta `CategoryType`, interface `CategoryRepository`, interface `CategoryUsecase`, dan DTO
+  - [x] 1.3 Buat file `internal/domain/category.go` dengan struct `Category`, konstanta `CategoryType`, interface `CategoryRepository`, interface `CategoryUsecase`, dan DTO
     - Definisikan struct `Category` dengan GORM tags (uuid PK, tanpa soft delete)
     - Definisikan `CategoryType` (INCOME, EXPENSE)
     - Definisikan interface `CategoryRepository` dengan method: `WithTx`, `Create`, `FetchByUserID`, `GetByID`, `CountByUserID`
@@ -33,22 +33,22 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Definisikan DTO: `BulkCreateCategoryItem`, `BulkCreateCategoryRequest`
     - _Requirements: 11.1, 11.2, 12.1_
 
-  - [ ] 1.4 Buat file `internal/domain/onboarding.go` dengan interface `OnboardingUsecase` dan DTO
+  - [x] 1.4 Buat file `internal/domain/onboarding.go` dengan interface `OnboardingUsecase` dan DTO
     - Definisikan interface `OnboardingUsecase` dengan method: `SetupAccounts`
     - Definisikan DTO: `SetupAccountItem`, `SetupAccountsRequest`, `SetupAccountsResponse`
     - _Requirements: 1.1, 1.7_
 
-  - [ ] 1.5 Buat file `internal/domain/dashboard.go` dengan interface `DashboardUsecase` dan DTO `DashboardSummary`
+  - [x] 1.5 Buat file `internal/domain/dashboard.go` dengan interface `DashboardUsecase` dan DTO `DashboardSummary`
     - Definisikan interface `DashboardUsecase` dengan method: `GetSummary`
     - Definisikan struct `DashboardSummary` (TotalBalance, RecentTransactions, NeedsPaydaySetup)
     - _Requirements: 10.1, 10.2, 10.3_
 
-  - [ ] 1.6 Tambahkan domain error baru di `internal/domain/errors.go`
+  - [x] 1.6 Tambahkan domain error baru di `internal/domain/errors.go`
     - Tambahkan: `ErrAccountNotFound`, `ErrTransactionNotFound`, `ErrCategoryNotFound`, `ErrForbidden`, `ErrInvalidAccountType`, `ErrInvalidTxType`, `ErrInvalidCategoryType`, `ErrNegativeBalance`, `ErrEmptyBulkRequest`, `ErrAlreadyDeleted`, `ErrValidationFailed`
     - _Requirements: 1.4, 3.5, 4.3, 5.3, 6.10, 8.4, 9.6_
 
 
-  - [ ]* 1.7 Tulis unit test untuk `CalculateBalanceDelta` di `internal/domain/transaction_test.go`
+  - [x] 1.7 Tulis unit test untuk `CalculateBalanceDelta` di `internal/domain/transaction_test.go`
     - Test bahwa INCOME dan ADJUSTMENT menghasilkan delta positif (+amount)
     - Test bahwa EXPENSE menghasilkan delta negatif (-amount)
     - Test bahwa tipe tidak dikenal menghasilkan delta 0
