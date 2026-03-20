@@ -24,21 +24,6 @@ type User struct {
 	UpdatedAt  time.Time    `json:"updated_at"`
 }
 
-// PaginationParams holds pagination query parameters.
-type PaginationParams struct {
-	Page    int `json:"page"`
-	PerPage int `json:"per_page"`
-}
-
-// PaginatedResult wraps a paginated response with metadata.
-type PaginatedResult struct {
-	Items      any `json:"items"`
-	TotalItems int `json:"total_items"`
-	Page       int `json:"page"`
-	PerPage    int `json:"per_page"`
-	TotalPages int `json:"total_pages"`
-}
-
 type UserRepository interface {
 	Create(ctx context.Context, user *User) error
 	Update(ctx context.Context, user *User) error

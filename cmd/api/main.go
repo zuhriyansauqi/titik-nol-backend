@@ -55,6 +55,9 @@ func main() {
 
 	// 5. Initialize Repository
 	userRepo := repository.NewUserRepository(db)
+	accRepo := repository.NewAccountRepository(db)
+	txRepo := repository.NewTransactionRepository(db)
+	catRepo := repository.NewCategoryRepository(db)
 
 	// 6. Initialize Services & Usecase
 	jwtService := jwt.NewJWTService(cfg.JWTSecret, cfg.JWTIssuer, cfg.JWTExpirySeconds)
@@ -62,6 +65,11 @@ func main() {
 
 	userUsecase := usecase.NewUserUsecase(userRepo)
 	authUsecase := usecase.NewAuthUsecase(userRepo, googleSSO, jwtService)
+	accountUsecase := usecase.NewAccountUsecase(accRepo, txRepo, db)
+	transactionUsecase := usecase.NewTransactionUsecase(txRepo, accRepo, catRepo, db)
+	onboardingUsecase := usecase.NewOnboardingUsecase(accRepo, txRepo, db)
+	dashboardUsecase := usecase.NewDashboardUsecase(accRepo, txRepo, catRepo)
+	categoryUsecase := usecase.NewCategoryUsecase(catRepo, db)
 
 	// 7. Initialize Middleware
 	authMiddleware := middleware.AuthMiddleware(jwtService)
@@ -96,6 +104,15 @@ func main() {
 	// 10. Setup Handlers
 	delivery.NewUserHandler(r, userUsecase)
 	delivery.NewAuthHandler(r, authUsecase, authMiddleware)
+
+	// API v1 routes (authenticated)
+	v1 := r.Group("/api/v1")
+	v1.Use(authMiddleware)
+	delivery.NewAccountHandler(v1, accountUsecase)
+	delivery.NewTransactionHandler(v1, transactionUsecase)
+	delivery.NewOnboardingHandler(v1, onboardingUsecase)
+	delivery.NewDashboardHandler(v1, dashboardUsecase)
+	delivery.NewCategoryHandler(v1, categoryUsecase)
 
 	// 11. Graceful Shutdown
 	srv := &http.Server{

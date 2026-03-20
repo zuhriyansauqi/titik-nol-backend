@@ -55,11 +55,11 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Gunakan naming `TestCalculateBalanceDelta_Income`, `TestCalculateBalanceDelta_Expense`, dst.
     - _Requirements: 6.1, 6.2, 6.3, 9.2, 9.3, 9.4_
 
-- [ ] 2. Checkpoint — Validasi Domain Layer
+- [x] 2. Checkpoint — Validasi Domain Layer
   - Pastikan semua test lulus dengan `make test`, tanyakan ke user jika ada pertanyaan.
 
-- [ ] 3. Repository Layer — Implementasi Data Access
-  - [ ] 3.1 Buat file `internal/repository/account_repository.go` yang mengimplementasikan `domain.AccountRepository`
+- [x] 3. Repository Layer — Implementasi Data Access
+  - [x] 3.1 Buat file `internal/repository/account_repository.go` yang mengimplementasikan `domain.AccountRepository`
     - Implementasikan struct `accountRepository` dengan field `db *gorm.DB`
     - Implementasikan `WithTx(tx *gorm.DB) AccountRepository` yang mengembalikan instance baru dengan tx
     - Implementasikan `Create`: insert Account baru via GORM
@@ -72,7 +72,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Buat constructor `NewAccountRepository(db *gorm.DB) domain.AccountRepository`
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 3.1, 4.1, 4.2, 5.1, 5.4, 5.5_
 
-  - [ ] 3.2 Buat file `internal/repository/transaction_repository.go` yang mengimplementasikan `domain.TransactionRepository`
+  - [x] 3.2 Buat file `internal/repository/transaction_repository.go` yang mengimplementasikan `domain.TransactionRepository`
     - Implementasikan struct `transactionRepository` dengan field `db *gorm.DB`
     - Implementasikan `WithTx(tx *gorm.DB) TransactionRepository`
     - Implementasikan `Create`: insert Transaction baru
@@ -85,7 +85,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Buat constructor `NewTransactionRepository(db *gorm.DB) domain.TransactionRepository`
     - _Requirements: 6.1, 6.12, 7.1, 7.2, 7.3, 7.5, 7.6, 8.1, 8.7, 9.1, 9.7, 13.1, 13.4_
 
-  - [ ] 3.3 Buat file `internal/repository/category_repository.go` yang mengimplementasikan `domain.CategoryRepository`
+  - [x] 3.3 Buat file `internal/repository/category_repository.go` yang mengimplementasikan `domain.CategoryRepository`
     - Implementasikan struct `categoryRepository` dengan field `db *gorm.DB`
     - Implementasikan `WithTx(tx *gorm.DB) CategoryRepository`
     - Implementasikan `Create`: insert Category baru
@@ -95,17 +95,17 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Buat constructor `NewCategoryRepository(db *gorm.DB) domain.CategoryRepository`
     - _Requirements: 11.1, 12.1, 12.2, 12.3, 12.4, 10.3_
 
-  - [ ]* 3.4 Buat mock untuk repository interfaces di `internal/domain/mocks/`
+  - [x] 3.4 Buat mock untuk repository interfaces di `internal/domain/mocks/`
     - Buat `mock_account_repository.go` dengan mock `AccountRepository` menggunakan testify mock
     - Buat `mock_transaction_repository.go` dengan mock `TransactionRepository` menggunakan testify mock
     - Buat `mock_category_repository.go` dengan mock `CategoryRepository` menggunakan testify mock
     - _Requirements: semua — dibutuhkan untuk unit test usecase_
 
-- [ ] 4. Checkpoint — Validasi Repository Layer
+- [x] 4. Checkpoint — Validasi Repository Layer
   - Pastikan semua test lulus dengan `make test`, tanyakan ke user jika ada pertanyaan.
 
 - [ ] 5. Usecase Layer — Implementasi Business Logic
-  - [ ] 5.1 Buat file `internal/usecase/account_usecase.go` yang mengimplementasikan `domain.AccountUsecase`
+  - [x] 5.1 Buat file `internal/usecase/account_usecase.go` yang mengimplementasikan `domain.AccountUsecase`
     - Struct `accountUsecase` dengan dependency: `accRepo domain.AccountRepository`, `txRepo domain.TransactionRepository`, `db *gorm.DB`
     - Implementasikan `Create`: validasi input → buat Account dalam db transaction → jika `InitialBalance > 0`, buat Transaction ADJUSTMENT dan set balance → return Account
     - Implementasikan `Update`: validasi ownership via `GetByID` → update nama → return Account
@@ -115,7 +115,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Buat constructor `NewAccountUsecase(accRepo, txRepo, db) domain.AccountUsecase`
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 4.4, 4.5, 5.1, 5.2, 5.3, 5.4, 5.5_
 
-  - [ ]* 5.2 Tulis unit test untuk `AccountUsecase` di `internal/usecase/account_usecase_test.go`
+  - [x] 5.2 Tulis unit test untuk `AccountUsecase` di `internal/usecase/account_usecase_test.go`
     - Test `TestAccountUsecase_Create_Success`: buat akun dengan saldo awal > 0, verifikasi Account dan ADJUSTMENT dibuat
     - Test `TestAccountUsecase_Create_ZeroBalance`: buat akun dengan saldo 0, verifikasi tidak ada ADJUSTMENT
     - Test `TestAccountUsecase_Update_Success`: update nama akun
@@ -125,7 +125,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Gunakan mock repository dari task 3.4
     - _Requirements: 2.1, 3.1, 3.2, 4.1, 4.3, 5.1_
 
-  - [ ] 5.3 Buat file `internal/usecase/transaction_usecase.go` yang mengimplementasikan `domain.TransactionUsecase`
+  - [x] 5.3 Buat file `internal/usecase/transaction_usecase.go` yang mengimplementasikan `domain.TransactionUsecase`
     - Struct `transactionUsecase` dengan dependency: `txRepo domain.TransactionRepository`, `accRepo domain.AccountRepository`, `catRepo domain.CategoryRepository`, `db *gorm.DB`
     - Implementasikan `Create`: dalam db transaction → validasi account ownership → validasi category ownership (jika ada) → buat Transaction → hitung delta via `CalculateBalanceDelta` → `UpdateBalance` → return response dengan balance baru
     - Implementasikan `Update`: dalam db transaction → validasi ownership → hitung selisih delta (oldDelta vs newDelta) → update Transaction → `UpdateBalance` dengan adjustment delta → return response
@@ -135,7 +135,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Buat constructor `NewTransactionUsecase(txRepo, accRepo, catRepo, db) domain.TransactionUsecase`
     - _Requirements: 6.1–6.12, 7.1–7.7, 8.1–8.8, 9.1–9.7_
 
-  - [ ]* 5.4 Tulis unit test untuk `TransactionUsecase` di `internal/usecase/transaction_usecase_test.go`
+  - [x] 5.4 Tulis unit test untuk `TransactionUsecase` di `internal/usecase/transaction_usecase_test.go`
     - Test `TestTransactionUsecase_Create_Income`: buat transaksi INCOME, verifikasi balance bertambah
     - Test `TestTransactionUsecase_Create_Expense`: buat transaksi EXPENSE, verifikasi balance berkurang
     - Test `TestTransactionUsecase_Create_AccountNotFound`: account tidak ada, expect error
@@ -146,7 +146,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Gunakan mock repository dari task 3.4
     - _Requirements: 6.1, 6.2, 6.5, 6.9, 8.2, 9.2, 9.3, 7.1_
 
-  - [ ] 5.5 Buat file `internal/usecase/onboarding_usecase.go` yang mengimplementasikan `domain.OnboardingUsecase`
+  - [x] 5.5 Buat file `internal/usecase/onboarding_usecase.go` yang mengimplementasikan `domain.OnboardingUsecase`
     - Struct `onboardingUsecase` dengan dependency: `accRepo domain.AccountRepository`, `txRepo domain.TransactionRepository`, `db *gorm.DB`
     - Implementasikan `SetupAccounts`: validasi semua item → dalam db transaction → loop: buat Account → jika `InitialBalance > 0`, buat Transaction ADJUSTMENT → kumpulkan hasil → return response
     - Validasi: nama tidak kosong, tipe valid, saldo tidak negatif, daftar tidak kosong
@@ -155,7 +155,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Buat constructor `NewOnboardingUsecase(accRepo, txRepo, db) domain.OnboardingUsecase`
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7_
 
-  - [ ]* 5.6 Tulis unit test untuk `OnboardingUsecase` di `internal/usecase/onboarding_usecase_test.go`
+  - [x] 5.6 Tulis unit test untuk `OnboardingUsecase` di `internal/usecase/onboarding_usecase_test.go`
     - Test `TestOnboardingUsecase_SetupAccounts_Success`: bulk insert 3 akun, 2 dengan saldo > 0
     - Test `TestOnboardingUsecase_SetupAccounts_ZeroBalance`: akun dengan saldo 0 tidak membuat ADJUSTMENT
     - Test `TestOnboardingUsecase_SetupAccounts_EmptyList`: daftar kosong, expect error
@@ -163,21 +163,21 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Gunakan mock repository dari task 3.4
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6_
 
-  - [ ] 5.7 Buat file `internal/usecase/dashboard_usecase.go` yang mengimplementasikan `domain.DashboardUsecase`
+  - [x] 5.7 Buat file `internal/usecase/dashboard_usecase.go` yang mengimplementasikan `domain.DashboardUsecase`
     - Struct `dashboardUsecase` dengan dependency: `accRepo domain.AccountRepository`, `txRepo domain.TransactionRepository`, `catRepo domain.CategoryRepository`
     - Implementasikan `GetSummary`: fetch semua akun aktif user → hitung total balance → fetch 5 transaksi terbaru → cek count kategori → return `DashboardSummary`
     - Gunakan `slog.InfoContext` untuk logging
     - Buat constructor `NewDashboardUsecase(accRepo, txRepo, catRepo) domain.DashboardUsecase`
     - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 10.6_
 
-  - [ ]* 5.8 Tulis unit test untuk `DashboardUsecase` di `internal/usecase/dashboard_usecase_test.go`
+  - [x] 5.8 Tulis unit test untuk `DashboardUsecase` di `internal/usecase/dashboard_usecase_test.go`
     - Test `TestDashboardUsecase_GetSummary_WithCategories`: user punya kategori, `needs_payday_setup` = false
     - Test `TestDashboardUsecase_GetSummary_NoCategories`: user tanpa kategori, `needs_payday_setup` = true
     - Test `TestDashboardUsecase_GetSummary_TotalBalance`: verifikasi total balance dari multiple akun
     - Gunakan mock repository dari task 3.4
     - _Requirements: 10.1, 10.2, 10.3, 10.4_
 
-  - [ ] 5.9 Buat file `internal/usecase/category_usecase.go` yang mengimplementasikan `domain.CategoryUsecase`
+  - [x] 5.9 Buat file `internal/usecase/category_usecase.go` yang mengimplementasikan `domain.CategoryUsecase`
     - Struct `categoryUsecase` dengan dependency: `catRepo domain.CategoryRepository`, `db *gorm.DB`
     - Implementasikan `BulkCreate`: validasi semua item → dalam db transaction → loop: buat Category → return daftar Category
     - Validasi: nama tidak kosong, tipe valid (INCOME/EXPENSE), daftar tidak kosong
@@ -186,7 +186,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Buat constructor `NewCategoryUsecase(catRepo, db) domain.CategoryUsecase`
     - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6, 12.1, 12.2, 12.3, 12.4_
 
-  - [ ]* 5.10 Tulis unit test untuk `CategoryUsecase` di `internal/usecase/category_usecase_test.go`
+  - [x] 5.10 Tulis unit test untuk `CategoryUsecase` di `internal/usecase/category_usecase_test.go`
     - Test `TestCategoryUsecase_BulkCreate_Success`: bulk insert 3 kategori
     - Test `TestCategoryUsecase_BulkCreate_EmptyList`: daftar kosong, expect error
     - Test `TestCategoryUsecase_BulkCreate_InvalidItem`: item dengan nama kosong, expect error
@@ -194,7 +194,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Gunakan mock repository dari task 3.4
     - _Requirements: 11.1, 11.2, 11.4, 11.5, 12.1, 12.3_
 
-  - [ ] 5.11 Buat file `internal/usecase/reconciliation_service.go` yang mengimplementasikan Reconciliation Service
+  - [x] 5.11 Buat file `internal/usecase/reconciliation_service.go` yang mengimplementasikan Reconciliation Service
     - Struct `reconciliationService` dengan dependency: `accRepo domain.AccountRepository`, `txRepo domain.TransactionRepository`
     - Implementasikan `ReconcileAll`: fetch semua akun aktif → untuk setiap akun, hitung expected balance via `SumByAccount` → bandingkan dengan stored balance → log WARN jika mismatch
     - Implementasikan `ReconcileAccount`: reconcile satu akun
@@ -203,18 +203,18 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Buat constructor `NewReconciliationService(accRepo, txRepo) *reconciliationService`
     - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6_
 
-  - [ ]* 5.12 Tulis unit test untuk `ReconciliationService` di `internal/usecase/reconciliation_service_test.go`
+  - [x] 5.12 Tulis unit test untuk `ReconciliationService` di `internal/usecase/reconciliation_service_test.go`
     - Test `TestReconciliationService_ReconcileAccount_Match`: balance cocok, tidak ada warning
     - Test `TestReconciliationService_ReconcileAccount_Mismatch`: balance tidak cocok, verifikasi log warning
     - Gunakan mock repository dari task 3.4
     - _Requirements: 13.1, 13.2, 13.3_
 
-- [ ] 6. Checkpoint — Validasi Usecase Layer
+- [x] 6. Checkpoint — Validasi Usecase Layer
   - Pastikan semua test lulus dengan `make test`, tanyakan ke user jika ada pertanyaan.
 
 
-- [ ] 7. Delivery/HTTP Layer — Handler dan Error Mapping
-  - [ ] 7.1 Buat helper `handleDomainError` di `internal/delivery/http/error_mapper.go`
+- [x] 7. Delivery/HTTP Layer — Handler dan Error Mapping
+  - [x] 7.1 Buat helper `handleDomainError` di `internal/delivery/http/error_mapper.go`
     - Implementasikan fungsi `handleDomainError(c *gin.Context, err error)` yang memetakan domain error ke HTTP status menggunakan package `response`
     - Mapping: `ErrAccountNotFound`/`ErrTransactionNotFound`/`ErrCategoryNotFound`/`ErrAlreadyDeleted` → `response.NotFound`
     - Mapping: `ErrForbidden` → `response.NotFound` (404 bukan 403, sesuai requirement)
@@ -222,7 +222,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Default: `response.InternalServerError`
     - _Requirements: 1.4, 3.5, 4.3, 5.3, 6.10, 8.4, 9.6_
 
-  - [ ] 7.2 Buat file `internal/delivery/http/account_handler.go` yang mengimplementasikan AccountHandler
+  - [x] 7.2 Buat file `internal/delivery/http/account_handler.go` yang mengimplementasikan AccountHandler
     - Struct `AccountHandler` dengan dependency: `accountUsecase domain.AccountUsecase`
     - Implementasikan `Create`: parse `CreateAccountRequest` via `ShouldBindJSON` → extract `user_id` dari context → panggil usecase → return `response.Success` (201)
     - Implementasikan `Fetch`: extract `user_id` → panggil usecase → return `response.Success` (200)
@@ -232,7 +232,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Buat constructor `NewAccountHandler(rg *gin.RouterGroup, uc domain.AccountUsecase)` yang mendaftarkan route: GET `/accounts`, POST `/accounts`, PUT `/accounts/:id`, DELETE `/accounts/:id`
     - _Requirements: 2.1, 2.4, 3.1, 3.5, 4.1, 4.3, 5.1, 5.3_
 
-  - [ ]* 7.3 Tulis unit test untuk `AccountHandler` di `internal/delivery/http/account_handler_test.go`
+  - [x] 7.3 Tulis unit test untuk `AccountHandler` di `internal/delivery/http/account_handler_test.go`
     - Test `TestAccountHandler_Create_Success`: request valid, expect 201
     - Test `TestAccountHandler_Create_InvalidBody`: body tidak valid, expect 400
     - Test `TestAccountHandler_Fetch_Success`: fetch daftar akun, expect 200
@@ -241,7 +241,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Gunakan mock usecase dan `httptest.NewRecorder`
     - _Requirements: 2.1, 3.1, 3.5, 4.3, 5.1_
 
-  - [ ] 7.4 Buat file `internal/delivery/http/transaction_handler.go` yang mengimplementasikan TransactionHandler
+  - [x] 7.4 Buat file `internal/delivery/http/transaction_handler.go` yang mengimplementasikan TransactionHandler
     - Struct `TransactionHandler` dengan dependency: `transactionUsecase domain.TransactionUsecase`
     - Implementasikan `Create`: parse `CreateTransactionRequest` → extract `user_id` → panggil usecase → return `response.Success` (201) dengan data transaksi dan balance baru
     - Implementasikan `Fetch`: extract `user_id` → parse query params (page, per_page, account_id, transaction_type) → panggil usecase → return `response.SuccessWithMeta` (200) dengan metadata paginasi
@@ -251,7 +251,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Buat constructor `NewTransactionHandler(rg *gin.RouterGroup, uc domain.TransactionUsecase)` yang mendaftarkan route: POST `/transactions`, GET `/transactions`, PUT `/transactions/:id`, DELETE `/transactions/:id`
     - _Requirements: 6.1, 6.11, 7.1, 7.2, 7.4, 8.1, 8.8, 9.1_
 
-  - [ ]* 7.5 Tulis unit test untuk `TransactionHandler` di `internal/delivery/http/transaction_handler_test.go`
+  - [x] 7.5 Tulis unit test untuk `TransactionHandler` di `internal/delivery/http/transaction_handler_test.go`
     - Test `TestTransactionHandler_Create_Success`: request valid, expect 201
     - Test `TestTransactionHandler_Create_InvalidBody`: body tidak valid, expect 400
     - Test `TestTransactionHandler_Fetch_WithPagination`: fetch dengan query params, expect 200
@@ -260,33 +260,33 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Gunakan mock usecase dan `httptest.NewRecorder`
     - _Requirements: 6.1, 6.11, 7.1, 7.4, 8.1, 9.6_
 
-  - [ ] 7.6 Buat file `internal/delivery/http/onboarding_handler.go` yang mengimplementasikan OnboardingHandler
+  - [x] 7.6 Buat file `internal/delivery/http/onboarding_handler.go` yang mengimplementasikan OnboardingHandler
     - Struct `OnboardingHandler` dengan dependency: `onboardingUsecase domain.OnboardingUsecase`
     - Implementasikan `SetupAccounts`: parse `SetupAccountsRequest` → extract `user_id` → panggil usecase → return `response.Success` (201)
     - Gunakan `handleDomainError` untuk error handling
     - Buat constructor `NewOnboardingHandler(rg *gin.RouterGroup, uc domain.OnboardingUsecase)` yang mendaftarkan route: POST `/onboarding/accounts`
     - _Requirements: 1.1, 1.4, 1.7_
 
-  - [ ]* 7.7 Tulis unit test untuk `OnboardingHandler` di `internal/delivery/http/onboarding_handler_test.go`
+  - [x] 7.7 Tulis unit test untuk `OnboardingHandler` di `internal/delivery/http/onboarding_handler_test.go`
     - Test `TestOnboardingHandler_SetupAccounts_Success`: request valid, expect 201
     - Test `TestOnboardingHandler_SetupAccounts_InvalidBody`: body tidak valid, expect 400
     - Test `TestOnboardingHandler_SetupAccounts_EmptyList`: daftar kosong, expect 400
     - Gunakan mock usecase dan `httptest.NewRecorder`
     - _Requirements: 1.1, 1.4, 1.6_
 
-  - [ ] 7.8 Buat file `internal/delivery/http/dashboard_handler.go` yang mengimplementasikan DashboardHandler
+  - [x] 7.8 Buat file `internal/delivery/http/dashboard_handler.go` yang mengimplementasikan DashboardHandler
     - Struct `DashboardHandler` dengan dependency: `dashboardUsecase domain.DashboardUsecase`
     - Implementasikan `GetSummary`: extract `user_id` → panggil usecase → return `response.Success` (200)
     - Gunakan `handleDomainError` untuk error handling
     - Buat constructor `NewDashboardHandler(rg *gin.RouterGroup, uc domain.DashboardUsecase)` yang mendaftarkan route: GET `/dashboard`
     - _Requirements: 10.1, 10.5_
 
-  - [ ]* 7.9 Tulis unit test untuk `DashboardHandler` di `internal/delivery/http/dashboard_handler_test.go`
+  - [x] 7.9 Tulis unit test untuk `DashboardHandler` di `internal/delivery/http/dashboard_handler_test.go`
     - Test `TestDashboardHandler_GetSummary_Success`: request valid, expect 200
     - Gunakan mock usecase dan `httptest.NewRecorder`
     - _Requirements: 10.1_
 
-  - [ ] 7.10 Buat file `internal/delivery/http/category_handler.go` yang mengimplementasikan CategoryHandler
+  - [x] 7.10 Buat file `internal/delivery/http/category_handler.go` yang mengimplementasikan CategoryHandler
     - Struct `CategoryHandler` dengan dependency: `categoryUsecase domain.CategoryUsecase`
     - Implementasikan `BulkCreate`: parse `BulkCreateCategoryRequest` → extract `user_id` → panggil usecase → return `response.Success` (201)
     - Implementasikan `Fetch`: extract `user_id` → parse query param `type` (opsional) → panggil usecase → return `response.Success` (200)
@@ -294,7 +294,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Buat constructor `NewCategoryHandler(rg *gin.RouterGroup, uc domain.CategoryUsecase)` yang mendaftarkan route: POST `/categories`, GET `/categories`
     - _Requirements: 11.1, 11.6, 12.1, 12.3_
 
-  - [ ]* 7.11 Tulis unit test untuk `CategoryHandler` di `internal/delivery/http/category_handler_test.go`
+  - [x] 7.11 Tulis unit test untuk `CategoryHandler` di `internal/delivery/http/category_handler_test.go`
     - Test `TestCategoryHandler_BulkCreate_Success`: request valid, expect 201
     - Test `TestCategoryHandler_BulkCreate_InvalidBody`: body tidak valid, expect 400
     - Test `TestCategoryHandler_Fetch_Success`: fetch daftar kategori, expect 200
@@ -302,7 +302,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Gunakan mock usecase dan `httptest.NewRecorder`
     - _Requirements: 11.1, 11.5, 12.1, 12.3_
 
-  - [ ]* 7.12 Buat mock untuk usecase interfaces di `internal/domain/mocks/`
+  - [x] 7.12 Buat mock untuk usecase interfaces di `internal/domain/mocks/`
     - Buat `mock_account_usecase.go` dengan mock `AccountUsecase`
     - Buat `mock_transaction_usecase.go` dengan mock `TransactionUsecase`
     - Buat `mock_onboarding_usecase.go` dengan mock `OnboardingUsecase`
@@ -310,11 +310,11 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Buat `mock_category_usecase.go` dengan mock `CategoryUsecase`
     - _Requirements: semua — dibutuhkan untuk unit test handler_
 
-- [ ] 8. Checkpoint — Validasi Delivery Layer
+- [x] 8. Checkpoint — Validasi Delivery Layer
   - Pastikan semua test lulus dengan `make test`, tanyakan ke user jika ada pertanyaan.
 
-- [ ] 9. Wiring — Integrasi di main.go
-  - [ ] 9.1 Update `cmd/api/main.go` untuk menginisialisasi dan menghubungkan semua komponen baru
+- [x] 9. Wiring — Integrasi di main.go
+  - [x] 9.1 Update `cmd/api/main.go` untuk menginisialisasi dan menghubungkan semua komponen baru
     - Import package repository, usecase, dan delivery baru
     - Inisialisasi repository: `NewAccountRepository(db)`, `NewTransactionRepository(db)`, `NewCategoryRepository(db)`
     - Inisialisasi usecase: `NewAccountUsecase(accRepo, txRepo, db)`, `NewTransactionUsecase(txRepo, accRepo, catRepo, db)`, `NewOnboardingUsecase(accRepo, txRepo, db)`, `NewDashboardUsecase(accRepo, txRepo, catRepo)`, `NewCategoryUsecase(catRepo, db)`, `NewReconciliationService(accRepo, txRepo)`
@@ -323,7 +323,7 @@ Implementasi fitur-fitur backend Titik Nol yang belum dibangun, mengikuti arsite
     - Pastikan handler auth yang sudah ada tetap berfungsi
     - _Requirements: 1.1, 2.1, 3.1, 6.1, 7.1, 10.1, 11.1, 12.1_
 
-- [ ] 10. Checkpoint Final — Validasi Keseluruhan
+- [x] 10. Checkpoint Final — Validasi Keseluruhan
   - Pastikan semua test lulus dengan `make test`, tanyakan ke user jika ada pertanyaan.
 
 ## Catatan
