@@ -2,7 +2,9 @@ package jwt_test
 
 import (
 	"testing"
+	"time"
 
+	jwtlib "github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/mzhryns/titik-nol-backend/internal/pkg/jwt"
 	"github.com/stretchr/testify/assert"
@@ -41,5 +43,23 @@ func TestValidateToken_WrongSecret(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = svc2.ValidateToken(token)
+	assert.Error(t, err)
+}
+
+func TestValidateToken_AlgorithmNone(t *testing.T) {
+	svc := newTestService()
+
+	// Craft a token with alg:none to simulate an algorithm confusion attack
+	token := jwtlib.NewWithClaims(jwtlib.SigningMethodNone, &jwt.CustomClaims{
+		UserID: uuid.New(),
+		RegisteredClaims: jwtlib.RegisteredClaims{
+			ExpiresAt: jwtlib.NewNumericDate(time.Now().Add(time.Hour)),
+			Issuer:    "test-issuer",
+		},
+	})
+	tokenString, err := token.SignedString(jwtlib.UnsafeAllowNoneSignatureType)
+	require.NoError(t, err)
+
+	_, err = svc.ValidateToken(tokenString)
 	assert.Error(t, err)
 }

@@ -102,12 +102,13 @@ func main() {
 	})
 
 	// 10. Setup Handlers
-	delivery.NewUserHandler(r, userUsecase)
+
 	delivery.NewAuthHandler(r, authUsecase, authMiddleware)
 
 	// API v1 routes (authenticated)
 	v1 := r.Group("/api/v1")
 	v1.Use(authMiddleware)
+	delivery.NewUserHandler(v1, userUsecase)
 	delivery.NewAccountHandler(v1, accountUsecase)
 	delivery.NewTransactionHandler(v1, transactionUsecase)
 	delivery.NewOnboardingHandler(v1, onboardingUsecase)

@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mzhryns/titik-nol-backend/internal/pkg/response"
@@ -19,26 +20,42 @@ func RateLimiter(rps float64, burst int) gin.HandlerFunc {
 		}
 	}
 
-	var mu sync.RWMutex
-	limiters := make(map[string]*rate.Limiter)
+	var mu sync.Mutex
+	limiters := make(map[string]*struct {
+		limiter  *rate.Limiter
+		lastSeen time.Time
+	})
 
-	getLimiter := func(ip string) *rate.Limiter {
-		mu.RLock()
-		limiter, exists := limiters[ip]
-		mu.RUnlock()
-
-		if !exists {
+	go func() {
+		for {
+			time.Sleep(3 * time.Minute)
 			mu.Lock()
-			// Double check after acquiring write lock
-			limiter, exists = limiters[ip]
-			if !exists {
-				limiter = rate.NewLimiter(rate.Limit(rps), burst)
-				limiters[ip] = limiter
+			for ip, cl := range limiters {
+				if time.Since(cl.lastSeen) > 3*time.Minute {
+					delete(limiters, ip)
+				}
 			}
 			mu.Unlock()
 		}
+	}()
 
-		return limiter
+	getLimiter := func(ip string) *rate.Limiter {
+		mu.Lock()
+		defer mu.Unlock()
+
+		cl, exists := limiters[ip]
+		if !exists {
+			cl = &struct {
+				limiter  *rate.Limiter
+				lastSeen time.Time
+			}{
+				limiter: rate.NewLimiter(rate.Limit(rps), burst),
+			}
+			limiters[ip] = cl
+		}
+		cl.lastSeen = time.Now()
+
+		return cl.limiter
 	}
 
 	return func(c *gin.Context) {

@@ -16,16 +16,16 @@ type UserHandler struct {
 	UserUsecase domain.UserUsecase
 }
 
-func NewUserHandler(r *gin.Engine, us domain.UserUsecase) {
+func NewUserHandler(rg *gin.RouterGroup, us domain.UserUsecase) {
 	handler := &UserHandler{
 		UserUsecase: us,
 	}
 
-	v1 := r.Group("/api/v1")
+	usersGroup := rg.Group("/users")
 	{
-		v1.GET("/users", handler.Fetch)
-		v1.GET("/users/:id", handler.GetByID)
-		v1.POST("/users", handler.Create)
+		usersGroup.GET("", handler.Fetch)
+		usersGroup.GET("/:id", handler.GetByID)
+		usersGroup.POST("", handler.Create)
 	}
 }
 
