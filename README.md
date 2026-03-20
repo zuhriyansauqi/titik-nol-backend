@@ -6,7 +6,7 @@ Personal finance API built with Go, following Clean Architecture. Manages accoun
 
 | Layer | Technology |
 |-------|-----------|
-| Language | Go 1.22+ |
+| Language | Go 1.26+ |
 | Framework | Gin |
 | ORM | GORM + PostgreSQL |
 | Auth | Google SSO + JWT |
@@ -122,7 +122,7 @@ sequenceDiagram
 
 ### Prerequisites
 
-- Go 1.22+
+- Go 1.26+
 - Docker & Docker Compose
 - Make
 - A Google Cloud project with OAuth 2.0 credentials (for SSO)
@@ -130,14 +130,14 @@ sequenceDiagram
 ### Setup
 
 ```bash
-# 1. Clone the repo
+# Clone the repo
 git clone https://github.com/mzhryns/titik-nol-backend.git
 cd titik-nol-backend
 
-# 2. Copy env and fill in your values
+# Copy env and fill in your values
 cp .env.example .env
 
-# 3. Start PostgreSQL and the app
+# Start development environment (with hot-reload)
 make docker-up
 ```
 
@@ -149,6 +149,15 @@ The API will be available at `http://localhost:8080`.
 # Make sure PostgreSQL is running and .env is configured
 make run
 ```
+
+### Production
+
+```bash
+# Build and start production containers
+make docker-prod-up
+```
+
+Production uses a hardened setup: non-root user, stripped binary, resource limits, read-only filesystem, no exposed DB port, and JSON logging.
 
 ### Environment Variables
 
@@ -169,7 +178,6 @@ Route groups overview:
 - `/api/v1/dashboard` — Financial summary 🔒
 
 > 🔒 = Requires `Authorization: Bearer <token>` header.
-
 
 ## Database Schema
 
@@ -228,22 +236,7 @@ erDiagram
 
 ## Make Commands
 
-| Command | Description |
-|---------|-------------|
-| `make build` | Build the API binary |
-| `make run` | Run the API locally |
-| `make test` | Run all tests |
-| `make test-v` | Verbose test output |
-| `make test-cover` | Test coverage report |
-| `make lint` | Run golangci-lint |
-| `make docker-up` | Start Docker services |
-| `make docker-down` | Stop Docker services |
-| `make docker-build` | Rebuild Docker image |
-| `make docker-logs` | Tail Docker logs |
-| `make migrate-up` | Run pending migrations |
-| `make migrate-down` | Rollback last migration |
-| `make migrate-create name=xxx` | Create new migration |
-| `make security` | Run all security checks |
+Run `make help` to list all available commands.
 
 ## Development Guidelines
 
