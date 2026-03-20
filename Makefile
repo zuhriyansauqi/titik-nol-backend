@@ -1,5 +1,6 @@
 .PHONY: build run test test-v test-cover clean tidy lint \
        docker-up docker-down docker-build docker-logs \
+       docker-prod-up docker-prod-down docker-prod-build docker-prod-logs \
        migrate-up migrate-down migrate-create \
        vuln-check sec-scan docker-scan security help
 
@@ -40,24 +41,37 @@ vuln-check: ## Scan Go dependencies for known vulnerabilities (govulncheck)
 sec-scan: ## Static-analysis security scan on Go source (gosec)
 	go run github.com/securego/gosec/v2/cmd/gosec@latest ./...
 
-docker-scan: docker-build ## Scan Docker image for OS/lib CVEs (Trivy)
-	trivy image --severity HIGH,CRITICAL titik-nol-backend-api
+docker-scan: docker-prod-build ## Scan production Docker image for OS/lib CVEs (Trivy)
+	trivy image --severity HIGH,CRITICAL titik-nol-backend-app
 
 security: vuln-check sec-scan ## Run all security checks (vuln-check + sec-scan)
 	@echo "\n🔒 All security checks passed"
 
-# ─── Docker ───────────────────────────────────────────────
-docker-up: ## Start all Docker services in background
+# ─── Docker (Development) ─────────────────────────────────
+docker-up: ## Start dev environment (hot-reload)
 	docker compose up -d
 
-docker-down: ## Stop and remove Docker services
+docker-down: ## Stop dev environment
 	docker compose down
 
-docker-build: ## Build Docker image from scratch
+docker-build: ## Rebuild dev containers from scratch
 	docker compose build --no-cache
 
-docker-logs: ## Tail Docker service logs
+docker-logs: ## Tail dev service logs
 	docker compose logs -f
+
+# ─── Docker (Production) ──────────────────────────────────
+docker-prod-up: ## Start production environment
+	docker compose -f docker-compose.prod.yml up -d
+
+docker-prod-down: ## Stop production environment
+	docker compose -f docker-compose.prod.yml down
+
+docker-prod-build: ## Rebuild production containers from scratch
+	docker compose -f docker-compose.prod.yml build --no-cache
+
+docker-prod-logs: ## Tail production service logs
+	docker compose -f docker-compose.prod.yml logs -f
 
 # ─── Migrations ───────────────────────────────────────────
 migrate-up: ## Run all pending migrations

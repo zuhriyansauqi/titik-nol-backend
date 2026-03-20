@@ -1,0 +1,36 @@
+# Version control
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Kiro
+.kiro
+
+# Build artifacts
+bin/
+
+# Docker
+Dockerfile
+docker-compose*.yml
+
+# Docs
+docs/
+README.md
+LICENSE
+
+# Environment files (config via runtime env vars)
+.env
+.env.*
+
+# Test & coverage
+coverage.out
+*.test
+
+# OS files
+.DS_Store
+Thumbs.db

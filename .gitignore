@@ -16,6 +16,7 @@
 
 # Project specific
 bin/
+tmp/
 
 # Environment variables
 .env

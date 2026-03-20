@@ -1,33 +1,71 @@
+# docker-compose.yml — Development environment
 services:
   app:
-    build: .
+    build:
+      context: .
+      target: development
+    container_name: titik_nol_app_dev
     ports:
-      - "8080:8080"
+      - "${APP_PORT:-8080}:8080"
     environment:
+      - APP_NAME=${APP_NAME:-titik-nol-backend}
+      - APP_ENV=local
+      - APP_PORT=8080
       - DB_HOST=db
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-admin}
+      - DB_PASSWORD=${DB_PASSWORD:-password_rahasia}
+      - DB_NAME=${DB_NAME:-titik_nol}
+      - DB_SSLMODE=disable
+      - DB_TIMEZONE=${DB_TIMEZONE:-Asia/Jakarta}
+      - DB_MAX_IDLE_CONNS=${DB_MAX_IDLE_CONNS:-10}
+      - DB_MAX_OPEN_CONNS=${DB_MAX_OPEN_CONNS:-100}
+      - DB_CONN_MAX_LIFETIME=${DB_CONN_MAX_LIFETIME:-1h}
+      - LOG_LEVEL=debug
+      - LOG_FORMAT=text
+      - JWT_SECRET=${JWT_SECRET:-dev_secret_change_me}
+      - JWT_ISSUER=${JWT_ISSUER:-titik-nol-backend}
+      - JWT_EXPIRY_SECONDS=${JWT_EXPIRY_SECONDS:-86400}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-your_google_client_id}
+      - CORS_ALLOW_ORIGINS=${CORS_ALLOW_ORIGINS:-http://localhost:3000}
+      - RATE_LIMIT_RPS=${RATE_LIMIT_RPS:-10}
+      - RATE_LIMIT_BURST=${RATE_LIMIT_BURST:-20}
+    volumes:
+      - .:/app
+      - go_modules:/go/pkg/mod
+      - go_build_cache:/root/.cache/go-build
     depends_on:
       db:
         condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - backend
 
   db:
     image: postgres:17-alpine
     container_name: titik_nol_db
     environment:
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER:-admin}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-password_rahasia}
+      - POSTGRES_DB=${DB_NAME:-titik_nol}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${DB_USER} -d $${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-admin} -d ${DB_NAME:-titik_nol}"]
       interval: 5s
       timeout: 5s
       retries: 5
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - backend
 
 volumes:
   postgres_data:
+  go_modules:
+  go_build_cache:
+
+networks:
+  backend:
+    driver: bridge
