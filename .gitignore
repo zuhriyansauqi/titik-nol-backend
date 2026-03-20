@@ -20,6 +20,9 @@ bin/
 # Environment variables
 .env
 
+# Kiro
+.kiro/specs/
+
 # IDEs
 .idea/
 .vscode/
