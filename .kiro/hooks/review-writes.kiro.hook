@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Review Write Operations",
+  "description": "Reviews agent write operations against project conventions before they are applied — checks Clean Architecture boundaries, response package usage, slog context logging, and test naming.",
+  "version": "1",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": [
+      "write"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before writing, verify: 1) Clean Architecture layer boundaries are respected (domain has no external deps, dependencies point inward). 2) HTTP handlers use the response package, not raw gin.H{}. 3) Logging uses slog with context (slog.InfoContext, not slog.Info) in request-scoped code. 4) Test functions are top-level (no t.Run subtests) and follow Test[Component]_[Scenario] naming."
+  }
+}

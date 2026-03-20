@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Lint on Save",
+  "description": "Runs golangci-lint whenever a Go file is saved to catch issues early.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.go"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "make lint"
+  }
+}

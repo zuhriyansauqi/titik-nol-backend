@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Conventional Commits Check",
+  "description": "Reminds the agent to use Conventional Commits format before any shell command that involves git commit.",
+  "version": "1",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": [
+      "shell"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "If this is a git commit command, ensure the message follows Conventional Commits: type(scope): description. Types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert. Use imperative present tense, no capitalized first letter, no trailing period."
+  }
+}

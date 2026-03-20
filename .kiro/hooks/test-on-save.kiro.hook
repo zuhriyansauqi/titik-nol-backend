@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Test on Save",
+  "description": "Runs the full test suite whenever a Go file is saved.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.go"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "make test"
+  }
+}
