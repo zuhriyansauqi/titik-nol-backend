@@ -165,7 +165,12 @@ Copy [`.env.example`](.env.example) to `.env` and fill in your values. The file 
 
 ## API Endpoints
 
-Full API documentation will be available via Swagger (coming soon).
+The interactive API documentation is available via **Scalar**:
+
+- **UI:** `/docs/api`
+- **OpenAPI Spec:** `/docs/swagger.json`
+
+> **Note:** Run `make swagger` to regenerate the documentation after any handler changes.
 
 Route groups overview:
 

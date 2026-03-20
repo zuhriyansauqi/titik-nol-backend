@@ -18,6 +18,18 @@ func NewOnboardingHandler(rg *gin.RouterGroup, uc domain.OnboardingUsecase) {
 	rg.POST("/onboarding/accounts", handler.SetupAccounts)
 }
 
+// SetupAccounts godoc
+// @Summary      Setup initial accounts
+// @Description  Create initial bank accounts during user onboarding
+// @Tags         onboarding
+// @Accept       json
+// @Produce      json
+// @Param        request body domain.SetupAccountsRequest true "Setup Accounts Data"
+// @Success      201  {object}  response.Response{data=[]domain.Account}
+// @Failure      400  {object}  response.Response
+// @Failure      500  {object}  response.Response
+// @Security     BearerAuth
+// @Router       /onboarding/accounts [post]
 func (h *OnboardingHandler) SetupAccounts(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 

@@ -22,6 +22,18 @@ func NewTransactionHandler(rg *gin.RouterGroup, uc domain.TransactionUsecase) {
 	rg.DELETE("/transactions/:id", handler.Delete)
 }
 
+// Create godoc
+// @Summary      Create a new transaction
+// @Description  Create a new expense, income, or transfer transaction
+// @Tags         transactions
+// @Accept       json
+// @Produce      json
+// @Param        request body domain.CreateTransactionRequest true "Transaction Data"
+// @Success      201  {object}  response.Response{data=domain.Transaction}
+// @Failure      400  {object}  response.Response
+// @Failure      500  {object}  response.Response
+// @Security     BearerAuth
+// @Router       /transactions [post]
 func (h *TransactionHandler) Create(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 
@@ -40,6 +52,19 @@ func (h *TransactionHandler) Create(c *gin.Context) {
 	response.Success(c, http.StatusCreated, "Transaction created successfully", result)
 }
 
+// Fetch godoc
+// @Summary      Get all transactions
+// @Description  Fetch a paginated list of transactions with optional filters
+// @Tags         transactions
+// @Produce      json
+// @Param        page               query  int     false  "Page number"
+// @Param        per_page           query  int     false  "Items per page"
+// @Param        account_id         query  string  false  "Filter by account ID"
+// @Param        transaction_type   query  string  false  "Filter by type (EXPENSE/INCOME/TRANSFER)"
+// @Success      200                {object}  response.Response{data=[]domain.Transaction}
+// @Failure      500                {object}  response.Response
+// @Security     BearerAuth
+// @Router       /transactions [get]
 func (h *TransactionHandler) Fetch(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 
@@ -87,6 +112,19 @@ func (h *TransactionHandler) Fetch(c *gin.Context) {
 	})
 }
 
+// Update godoc
+// @Summary      Update a transaction
+// @Description  Update details of a specific transaction by ID
+// @Tags         transactions
+// @Accept       json
+// @Produce      json
+// @Param        id      path      string                           true  "Transaction ID"
+// @Param        request body      domain.UpdateTransactionRequest  true  "Updated Transaction Data"
+// @Success      200     {object}  response.Response{data=domain.Transaction}
+// @Failure      400     {object}  response.Response
+// @Failure      500     {object}  response.Response
+// @Security     BearerAuth
+// @Router       /transactions/{id} [put]
 func (h *TransactionHandler) Update(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 
@@ -111,6 +149,17 @@ func (h *TransactionHandler) Update(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Transaction updated successfully", result)
 }
 
+// Delete godoc
+// @Summary      Delete a transaction
+// @Description  Soft delete a specific transaction by ID
+// @Tags         transactions
+// @Produce      json
+// @Param        id   path      string  true  "Transaction ID"
+// @Success      200  {object}  response.Response
+// @Failure      400  {object}  response.Response
+// @Failure      500  {object}  response.Response
+// @Security     BearerAuth
+// @Router       /transactions/{id} [delete]
 func (h *TransactionHandler) Delete(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 

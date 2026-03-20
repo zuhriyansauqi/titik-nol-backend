@@ -18,6 +18,15 @@ func NewDashboardHandler(rg *gin.RouterGroup, uc domain.DashboardUsecase) {
 	rg.GET("/dashboard", handler.GetSummary)
 }
 
+// GetSummary godoc
+// @Summary      Get dashboard summary
+// @Description  Fetch financial summary for the authenticated user's dashboard
+// @Tags         dashboard
+// @Produce      json
+// @Success      200  {object}  response.Response{data=domain.DashboardSummary}
+// @Failure      500  {object}  response.Response
+// @Security     BearerAuth
+// @Router       /dashboard [get]
 func (h *DashboardHandler) GetSummary(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 

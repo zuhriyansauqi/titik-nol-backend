@@ -29,6 +29,19 @@ func NewUserHandler(rg *gin.RouterGroup, us domain.UserUsecase) {
 	}
 }
 
+// Create godoc
+// @Summary      Create a new user
+// @Description  Create a new user with the provided details
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        request body domain.User true "User Data"
+// @Success      201  {object}  response.Response{data=domain.User}
+// @Failure      400  {object}  response.Response
+// @Failure      409  {object}  response.Response
+// @Failure      500  {object}  response.Response
+// @Security     BearerAuth
+// @Router       /users [post]
 func (h *UserHandler) Create(c *gin.Context) {
 	var user domain.User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -48,6 +61,18 @@ func (h *UserHandler) Create(c *gin.Context) {
 	response.Success(c, http.StatusCreated, "User created successfully", user)
 }
 
+// GetByID godoc
+// @Summary      Get user by ID
+// @Description  Fetch a single user by their UUID
+// @Tags         users
+// @Produce      json
+// @Param        id   path      string  true  "User ID"
+// @Success      200  {object}  response.Response{data=domain.User}
+// @Failure      400  {object}  response.Response
+// @Failure      404  {object}  response.Response
+// @Failure      500  {object}  response.Response
+// @Security     BearerAuth
+// @Router       /users/{id} [get]
 func (h *UserHandler) GetByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
@@ -69,6 +94,17 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 	response.Success(c, http.StatusOK, "User fetched successfully", user)
 }
 
+// Fetch godoc
+// @Summary      Get all users
+// @Description  Fetch a paginated list of users
+// @Tags         users
+// @Produce      json
+// @Param        page      query  int  false  "Page number"
+// @Param        per_page  query  int  false  "Items per page"
+// @Success      200       {object}  response.Response
+// @Failure      500       {object}  response.Response
+// @Security     BearerAuth
+// @Router       /users [get]
 func (h *UserHandler) Fetch(c *gin.Context) {
 	page := 1
 	perPage := 20

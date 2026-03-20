@@ -1,0 +1,859 @@
+basePath: /
+definitions:
+  domain.Account:
+    properties:
+      balance:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/domain.AccountType'
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  domain.AccountType:
+    enum:
+    - CASH
+    - BANK
+    - E_WALLET
+    - CREDIT_CARD
+    type: string
+    x-enum-varnames:
+    - AccountTypeCash
+    - AccountTypeBank
+    - AccountTypeEWallet
+    - AccountTypeCreditCard
+  domain.AuthProvider:
+    enum:
+    - GOOGLE
+    type: string
+    x-enum-varnames:
+    - ProviderGoogle
+  domain.BulkCreateCategoryItem:
+    properties:
+      icon:
+        type: string
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/domain.CategoryType'
+    required:
+    - name
+    - type
+    type: object
+  domain.BulkCreateCategoryRequest:
+    properties:
+      categories:
+        items:
+          $ref: '#/definitions/domain.BulkCreateCategoryItem'
+        minItems: 1
+        type: array
+    required:
+    - categories
+    type: object
+  domain.Category:
+    properties:
+      created_at:
+        type: string
+      icon:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/domain.CategoryType'
+      user_id:
+        type: string
+    type: object
+  domain.CategoryType:
+    enum:
+    - INCOME
+    - EXPENSE
+    type: string
+    x-enum-varnames:
+    - CategoryTypeIncome
+    - CategoryTypeExpense
+  domain.CreateAccountRequest:
+    properties:
+      initial_balance:
+        minimum: 0
+        type: integer
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/domain.AccountType'
+    required:
+    - name
+    - type
+    type: object
+  domain.CreateTransactionRequest:
+    properties:
+      account_id:
+        type: string
+      amount:
+        type: integer
+      category_id:
+        type: string
+      note:
+        type: string
+      transaction_date:
+        type: string
+      transaction_type:
+        $ref: '#/definitions/domain.TransactionType'
+    required:
+    - account_id
+    - amount
+    - transaction_date
+    - transaction_type
+    type: object
+  domain.DashboardSummary:
+    properties:
+      needs_payday_setup:
+        type: boolean
+      recent_transactions:
+        items:
+          $ref: '#/definitions/domain.Transaction'
+        type: array
+      total_balance:
+        type: integer
+    type: object
+  domain.GoogleLoginRequest:
+    properties:
+      id_token:
+        type: string
+    required:
+    - id_token
+    type: object
+  domain.SetupAccountItem:
+    properties:
+      initial_balance:
+        minimum: 0
+        type: integer
+      name:
+        type: string
+      type:
+        $ref: '#/definitions/domain.AccountType'
+    required:
+    - name
+    - type
+    type: object
+  domain.SetupAccountsRequest:
+    properties:
+      accounts:
+        items:
+          $ref: '#/definitions/domain.SetupAccountItem'
+        minItems: 1
+        type: array
+    required:
+    - accounts
+    type: object
+  domain.Transaction:
+    properties:
+      account_id:
+        type: string
+      amount:
+        type: integer
+      category_id:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      note:
+        type: string
+      transaction_date:
+        type: string
+      transaction_type:
+        $ref: '#/definitions/domain.TransactionType'
+      user_id:
+        type: string
+    type: object
+  domain.TransactionType:
+    enum:
+    - INCOME
+    - EXPENSE
+    - TRANSFER
+    - ADJUSTMENT
+    type: string
+    x-enum-varnames:
+    - TxTypeIncome
+    - TxTypeExpense
+    - TxTypeTransfer
+    - TxTypeAdjustment
+  domain.UpdateAccountRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  domain.UpdateTransactionRequest:
+    properties:
+      amount:
+        type: integer
+      category_id:
+        type: string
+      note:
+        type: string
+      transaction_date:
+        type: string
+    required:
+    - amount
+    - transaction_date
+    type: object
+  domain.User:
+    properties:
+      avatar_url:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      provider:
+        $ref: '#/definitions/domain.AuthProvider'
+      provider_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  response.ErrorBody:
+    properties:
+      detail:
+        type: string
+      errors:
+        items:
+          $ref: '#/definitions/response.FieldFailure'
+        type: array
+      instance:
+        type: string
+      status:
+        type: integer
+      title:
+        type: string
+      type:
+        type: string
+    type: object
+  response.FieldFailure:
+    properties:
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+  response.Response:
+    properties:
+      data: {}
+      error:
+        $ref: '#/definitions/response.ErrorBody'
+      message:
+        type: string
+      meta: {}
+      success:
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API Documentation for the Titik Nol Backend
+  title: Titik Nol API
+  version: "1.0"
+paths:
+  /accounts:
+    get:
+      description: Fetch all accounts belonging to the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.Account'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get all accounts
+      tags:
+      - accounts
+    post:
+      consumes:
+      - application/json
+      description: Create a new bank account or wallet for the authenticated user
+      parameters:
+      - description: Account Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Account'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a new account
+      tags:
+      - accounts
+  /accounts/{id}:
+    delete:
+      description: Soft delete a specific account by ID
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete an account
+      tags:
+      - accounts
+    put:
+      consumes:
+      - application/json
+      description: Update details of a specific account by ID
+      parameters:
+      - description: Account ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated Account Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Account'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update an account
+      tags:
+      - accounts
+  /auth/google:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user using Google OAuth token
+      parameters:
+      - description: Google Login Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.GoogleLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Login with Google
+      tags:
+      - auth
+  /auth/me:
+    get:
+      description: Get the currently authenticated user's profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.User'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get current user
+      tags:
+      - auth
+  /categories:
+    get:
+      description: Fetch all categories belonging to the authenticated user
+      parameters:
+      - description: Filter by category type (expense/income)
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.Category'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get all categories
+      tags:
+      - categories
+    post:
+      consumes:
+      - application/json
+      description: Create multiple expense or income categories at once
+      parameters:
+      - description: Categories Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.BulkCreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.Category'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create multiple categories
+      tags:
+      - categories
+  /dashboard:
+    get:
+      description: Fetch financial summary for the authenticated user's dashboard
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.DashboardSummary'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get dashboard summary
+      tags:
+      - dashboard
+  /onboarding/accounts:
+    post:
+      consumes:
+      - application/json
+      description: Create initial bank accounts during user onboarding
+      parameters:
+      - description: Setup Accounts Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.SetupAccountsRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.Account'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Setup initial accounts
+      tags:
+      - onboarding
+  /transactions:
+    get:
+      description: Fetch a paginated list of transactions with optional filters
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      - description: Filter by account ID
+        in: query
+        name: account_id
+        type: string
+      - description: Filter by type (EXPENSE/INCOME/TRANSFER)
+        in: query
+        name: transaction_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/domain.Transaction'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get all transactions
+      tags:
+      - transactions
+    post:
+      consumes:
+      - application/json
+      description: Create a new expense, income, or transfer transaction
+      parameters:
+      - description: Transaction Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Transaction'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a new transaction
+      tags:
+      - transactions
+  /transactions/{id}:
+    delete:
+      description: Soft delete a specific transaction by ID
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete a transaction
+      tags:
+      - transactions
+    put:
+      consumes:
+      - application/json
+      description: Update details of a specific transaction by ID
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated Transaction Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.UpdateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.Transaction'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Update a transaction
+      tags:
+      - transactions
+  /users:
+    get:
+      description: Fetch a paginated list of users
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get all users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user with the provided details
+      parameters:
+      - description: User Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Create a new user
+      tags:
+      - users
+  /users/{id}:
+    get:
+      description: Fetch a single user by their UUID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.User'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get user by ID
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

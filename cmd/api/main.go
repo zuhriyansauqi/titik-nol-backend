@@ -22,6 +22,15 @@ import (
 	"github.com/mzhryns/titik-nol-backend/internal/usecase"
 )
 
+// @title           Titik Nol API
+// @version         1.0
+// @description     API Documentation for the Titik Nol Backend
+// @host            localhost:8080
+// @BasePath        /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 func main() {
 	// 1. Load Config
 	cfg, err := config.LoadConfig()
@@ -93,7 +102,26 @@ func main() {
 	// Configure Rate Limiter
 	r.Use(middleware.RateLimiter(cfg.RateLimitRPS, cfg.RateLimitBurst))
 
-	// 9. Health Check
+	// 9. API Documentation (Swagger + Scalar)
+	r.StaticFile("/docs/swagger.json", "./docs/swagger.json")
+	r.GET("/docs/api", func(c *gin.Context) {
+		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(`
+			<!doctype html>
+			<html>
+			  <head>
+			    <title>API Reference</title>
+			    <meta charset="utf-8" />
+			    <meta name="viewport" content="width=device-width, initial-scale=1" />
+			  </head>
+			  <body>
+			    <script id="api-reference" data-url="/docs/swagger.json"></script>
+			    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+			  </body>
+			</html>
+		`))
+	})
+
+	// 10. Health Check
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "UP",

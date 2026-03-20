@@ -84,6 +84,10 @@ migrate-create: ## Create a new migration (usage: make migrate-create name=<name
 	@if [ -z "$(name)" ]; then echo "Usage: make migrate-create name=<migration_name>"; exit 1; fi
 	migrate create -ext sql -dir migrations -seq $(name)
 
+# ─── Docs ─────────────────────────────────────────────────
+swagger: ## Generate Swagger API documentation
+	go run github.com/swaggo/swag/cmd/swag@latest init -g cmd/api/main.go --output docs
+
 # ─── Help ─────────────────────────────────────────────────
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \

@@ -25,6 +25,17 @@ func NewAuthHandler(r *gin.Engine, authUsecase domain.AuthUsecase, authMiddlewar
 	}
 }
 
+// LoginWithGoogle godoc
+// @Summary      Login with Google
+// @Description  Authenticate a user using Google OAuth token
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body domain.GoogleLoginRequest true "Google Login Request"
+// @Success      200  {object}  response.Response
+// @Failure      400  {object}  response.Response
+// @Failure      401  {object}  response.Response
+// @Router       /auth/google [post]
 func (h *AuthHandler) LoginWithGoogle(c *gin.Context) {
 	var req domain.GoogleLoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -41,6 +52,16 @@ func (h *AuthHandler) LoginWithGoogle(c *gin.Context) {
 	response.Success(c, http.StatusOK, "Login successful", res)
 }
 
+// GetCurrentUser godoc
+// @Summary      Get current user
+// @Description  Get the currently authenticated user's profile
+// @Tags         auth
+// @Produce      json
+// @Success      200  {object}  response.Response{data=domain.User}
+// @Failure      401  {object}  response.Response
+// @Failure      500  {object}  response.Response
+// @Security     BearerAuth
+// @Router       /auth/me [get]
 func (h *AuthHandler) GetCurrentUser(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {

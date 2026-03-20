@@ -19,6 +19,18 @@ func NewCategoryHandler(rg *gin.RouterGroup, uc domain.CategoryUsecase) {
 	rg.GET("/categories", handler.Fetch)
 }
 
+// BulkCreate godoc
+// @Summary      Create multiple categories
+// @Description  Create multiple expense or income categories at once
+// @Tags         categories
+// @Accept       json
+// @Produce      json
+// @Param        request body domain.BulkCreateCategoryRequest true "Categories Data"
+// @Success      201  {object}  response.Response{data=[]domain.Category}
+// @Failure      400  {object}  response.Response
+// @Failure      500  {object}  response.Response
+// @Security     BearerAuth
+// @Router       /categories [post]
 func (h *CategoryHandler) BulkCreate(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 
@@ -37,6 +49,16 @@ func (h *CategoryHandler) BulkCreate(c *gin.Context) {
 	response.Success(c, http.StatusCreated, "Categories created successfully", categories)
 }
 
+// Fetch godoc
+// @Summary      Get all categories
+// @Description  Fetch all categories belonging to the authenticated user
+// @Tags         categories
+// @Produce      json
+// @Param        type   query     string  false  "Filter by category type (expense/income)"
+// @Success      200    {object}  response.Response{data=[]domain.Category}
+// @Failure      500    {object}  response.Response
+// @Security     BearerAuth
+// @Router       /categories [get]
 func (h *CategoryHandler) Fetch(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 
