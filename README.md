@@ -1,13 +1,122 @@
 # Titik Nol Backend
 
-A GORM and Gin-based backend project for Titik Nol.
+Personal finance API built with Go, following Clean Architecture. Manages accounts, transactions, categories, and provides a dashboard summary — all behind Google SSO authentication.
 
-## Features
+## Tech Stack
 
-- Gin-gonic web framework
-- GORM with PostgreSQL
-- Dockerized setup
-- Clean Architecture
+| Layer | Technology |
+|-------|-----------|
+| Language | Go 1.22+ |
+| Framework | Gin |
+| ORM | GORM + PostgreSQL |
+| Auth | Google SSO + JWT |
+| Config | Viper |
+| Logging | `log/slog` (structured, context-aware) |
+| Testing | `testing` + testify |
+| Infra | Docker + Docker Compose |
+
+## Architecture
+
+```
+cmd/api/              → Entrypoint
+internal/
+  domain/             → Entities, interfaces, domain errors
+  usecase/            → Business logic
+  repository/         → Data access (GORM)
+  delivery/http/      → Handlers + middleware (Gin)
+  infrastructure/     → Config, database, logger
+  pkg/                → Shared packages (JWT, Google SSO, response helpers)
+migrations/           → SQL migrations (golang-migrate)
+```
+
+Dependencies flow inward: `delivery → usecase → domain ← repository`.
+
+### Component Diagram
+
+```mermaid
+graph TD
+    subgraph "Delivery Layer"
+        AH[AccountHandler]
+        TH[TransactionHandler]
+        DH[DashboardHandler]
+        CH[CategoryHandler]
+        OH[OnboardingHandler]
+    end
+
+    subgraph "Usecase Layer"
+        AU[AccountUsecase]
+        TU[TransactionUsecase]
+        DU[DashboardUsecase]
+        CU[CategoryUsecase]
+        OU[OnboardingUsecase]
+        RU[ReconciliationService]
+    end
+
+    subgraph "Domain Layer"
+        DE[Entities: Account, Transaction, Category]
+        DI[Interfaces: Repository & Usecase]
+        DR[Domain Errors]
+    end
+
+    subgraph "Repository Layer"
+        AR[AccountRepository]
+        TR[TransactionRepository]
+        CR[CategoryRepository]
+    end
+
+    subgraph "Infrastructure"
+        DB[(PostgreSQL)]
+        MW[Auth Middleware]
+    end
+
+    AH --> AU
+    TH --> TU
+    DH --> DU
+    CH --> CU
+    OH --> OU
+
+    AU --> DI
+    TU --> DI
+    DU --> DI
+    CU --> DI
+    OU --> DI
+    RU --> DI
+
+    AR --> DB
+    TR --> DB
+    CR --> DB
+
+    MW --> AH
+    MW --> TH
+    MW --> DH
+    MW --> CH
+    MW --> OH
+```
+
+### Request Flow
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant MW as AuthMiddleware
+    participant H as Handler
+    participant UC as Usecase
+    participant R as Repository
+    participant DB as PostgreSQL
+
+    C->>MW: HTTP Request + Bearer Token
+    MW->>MW: Validate JWT, extract user_id
+    MW->>H: Set user_id in context
+    H->>H: Parse & validate request body
+    H->>UC: Call usecase method(ctx, params)
+    UC->>UC: Business logic & validation
+    UC->>R: Database operations
+    R->>DB: SQL query (within tx if needed)
+    DB-->>R: Result
+    R-->>UC: Domain entities
+    UC-->>H: Result / error
+    H-->>C: JSON response (via response package)
+```
 
 ## Getting Started
 
@@ -16,27 +125,137 @@ A GORM and Gin-based backend project for Titik Nol.
 - Go 1.22+
 - Docker & Docker Compose
 - Make
+- A Google Cloud project with OAuth 2.0 credentials (for SSO)
 
-### Installation
+### Setup
 
-1. Clone the repository.
-2. Copy `.env.example` to `.env`.
-3. Run `make dev` or `docker-compose up -d`.
+```bash
+# 1. Clone the repo
+git clone https://github.com/mzhryns/titik-nol-backend.git
+cd titik-nol-backend
+
+# 2. Copy env and fill in your values
+cp .env.example .env
+
+# 3. Start PostgreSQL and the app
+make docker-up
+```
+
+The API will be available at `http://localhost:8080`.
+
+### Running Locally (without Docker)
+
+```bash
+# Make sure PostgreSQL is running and .env is configured
+make run
+```
+
+### Environment Variables
+
+Copy [`.env.example`](.env.example) to `.env` and fill in your values. The file is self-documented with inline comments.
+
+## API Endpoints
+
+Full API documentation will be available via Swagger (coming soon).
+
+Route groups overview:
+
+- `/health` — Health check
+- `/auth` — Google SSO login & current user
+- `/api/v1/accounts` — Account CRUD 🔒
+- `/api/v1/transactions` — Transaction CRUD 🔒
+- `/api/v1/categories` — Category management 🔒
+- `/api/v1/onboarding` — Initial account setup 🔒
+- `/api/v1/dashboard` — Financial summary 🔒
+
+> 🔒 = Requires `Authorization: Bearer <token>` header.
+
+
+## Database Schema
+
+```mermaid
+erDiagram
+    users {
+        UUID id PK
+        VARCHAR email UK
+        VARCHAR name
+        TEXT avatar_url
+        VARCHAR provider
+        VARCHAR provider_id UK
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    accounts {
+        UUID id PK
+        UUID user_id FK
+        VARCHAR name
+        account_type_enum type "CASH | BANK | E_WALLET | CREDIT_CARD"
+        BIGINT balance "smallest unit"
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        TIMESTAMPTZ deleted_at "soft delete"
+    }
+
+    categories {
+        UUID id PK
+        UUID user_id FK
+        VARCHAR name
+        category_type_enum type "INCOME | EXPENSE"
+        VARCHAR icon
+        TIMESTAMPTZ created_at
+    }
+
+    transactions {
+        UUID id PK
+        UUID user_id FK
+        UUID account_id FK
+        UUID category_id FK "nullable"
+        tx_type_enum transaction_type "INCOME | EXPENSE | TRANSFER | ADJUSTMENT"
+        BIGINT amount
+        TEXT note
+        TIMESTAMPTZ transaction_date
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ deleted_at "soft delete"
+    }
+
+    users ||--o{ accounts : has
+    users ||--o{ categories : has
+    users ||--o{ transactions : has
+    accounts ||--o{ transactions : has
+    categories ||--o{ transactions : has
+```
+
+## Make Commands
+
+| Command | Description |
+|---------|-------------|
+| `make build` | Build the API binary |
+| `make run` | Run the API locally |
+| `make test` | Run all tests |
+| `make test-v` | Verbose test output |
+| `make test-cover` | Test coverage report |
+| `make lint` | Run golangci-lint |
+| `make docker-up` | Start Docker services |
+| `make docker-down` | Stop Docker services |
+| `make docker-build` | Rebuild Docker image |
+| `make docker-logs` | Tail Docker logs |
+| `make migrate-up` | Run pending migrations |
+| `make migrate-down` | Rollback last migration |
+| `make migrate-create name=xxx` | Create new migration |
+| `make security` | Run all security checks |
 
 ## Development Guidelines
 
-### Git Commit Messages
-This project follows the **Conventional Commits** specification. Please refer to the [Git Commit Rules](docs/git-commit-rules.md) for more details.
+- [API Response Standard](docs/api-response-standard.md) — all endpoints use the shared `response` package (RFC 7807 errors)
+- [Testing Guidelines](docs/testing-guidelines.md) — top-level test functions, no nested subtests
+- [Logger Guidelines](docs/logger.md) — context-aware `slog` usage
+- [Git Commit Rules](docs/git-commit-rules.md) — Conventional Commits format
 
-### API Standards
-Consistency in API responses is crucial. Please follow the [API Response Standard](docs/api-response-standard.md) for all endpoints.
+## License
 
-### Testing Guidelines
-We maintain a strict convention for structuring unit tests, emphasizing top-level functions over nested subtests. Review the [Testing Guidelines](docs/testing-guidelines.md) before pushing code.
+This project is open source under the [MIT License](LICENSE).
 
-### Logging Standards
-For consistency and proper structure, all application logs should use the slog package. Please refer to the [Logger Guidelines](docs/logger.md) for context-aware logging practices.
+If you fork or modify this project, please give credit by linking back to the original repository and mentioning the author.
 
-### Clean Architecture
-
-The project follows Clean Architecture principles. Ensure that business logic is kept in the `internal/domain` (or similar) layer and that dependencies point inwards.
+Built by [@zuhriyansauqi](https://github.com/zuhriyansauqi).
