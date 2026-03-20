@@ -249,6 +249,7 @@ Run `make help` to list all available commands.
 - [Testing Guidelines](docs/testing-guidelines.md) — top-level test functions, no nested subtests
 - [Logger Guidelines](docs/logger.md) — context-aware `slog` usage
 - [Git Commit Rules](docs/git-commit-rules.md) — Conventional Commits format
+- [Google ID Setup Guide](docs/google-id-setup.md) — how to configure OAuth 2.0 credentials
 
 ## License
 
