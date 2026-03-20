@@ -9,6 +9,8 @@ import (
 )
 
 // Initialize sets up the global slog logger based on config.
+// Base attributes (service, env) are attached to every log line,
+// which enables Datadog's Unified Service Tagging out of the box.
 func Initialize(cfg *config.Config) {
 	var level slog.Level
 	switch strings.ToLower(cfg.LogLevel) {
@@ -25,7 +27,8 @@ func Initialize(cfg *config.Config) {
 	}
 
 	opts := &slog.HandlerOptions{
-		Level: level,
+		Level:     level,
+		AddSource: strings.ToLower(cfg.AppEnv) != "production",
 	}
 
 	var handler slog.Handler
@@ -35,7 +38,13 @@ func Initialize(cfg *config.Config) {
 		handler = slog.NewTextHandler(os.Stdout, opts)
 	}
 
+	// Attach service-level attributes for Datadog Unified Service Tagging.
+	// These appear on every log line without manual repetition.
+	handler = handler.WithAttrs([]slog.Attr{
+		slog.String("service", cfg.AppName),
+		slog.String("env", cfg.AppEnv),
+	})
+
 	logger := slog.New(NewContextHandler(handler))
 	slog.SetDefault(logger)
 }
-

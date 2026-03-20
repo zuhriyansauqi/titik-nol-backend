@@ -40,7 +40,7 @@ func (u *userUsecase) GetByID(ctx context.Context, id uuid.UUID) (*domain.User, 
 
 	user, err := u.userRepo.GetByID(ctx, id)
 	if err != nil {
-		slog.WarnContext(ctx, "User not found", "user_id", id)
+		slog.DebugContext(ctx, "User not found", "user_id", id)
 		return nil, err
 	}
 

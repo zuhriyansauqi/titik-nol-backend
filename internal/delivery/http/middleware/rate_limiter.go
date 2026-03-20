@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mzhryns/titik-nol-backend/internal/pkg/response"
 	"golang.org/x/time/rate"
 )
 
@@ -45,10 +46,9 @@ func RateLimiter(rps float64, burst int) gin.HandlerFunc {
 		limiter := getLimiter(ip)
 
 		if !limiter.Allow() {
-			slog.Warn("Rate limit exceeded", "ip", ip)
-			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
-				"error": "Rate limit exceeded. Please try again later.",
-			})
+			slog.WarnContext(c.Request.Context(), "Rate limit exceeded", "network.client.ip", ip)
+			response.Error(c, http.StatusTooManyRequests, "Rate limit exceeded", "Please try again later.", nil)
+			c.Abort()
 			return
 		}
 

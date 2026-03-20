@@ -38,12 +38,12 @@ func (u *authUsecase) LoginWithGoogle(ctx context.Context, req *domain.GoogleLog
 
 	email, ok := payload.Claims["email"].(string)
 	if !ok || email == "" {
-		slog.ErrorContext(ctx, "Google token missing 'email' claim")
+		slog.WarnContext(ctx, "Google token missing 'email' claim")
 		return nil, fmt.Errorf("google token missing required claim: email")
 	}
 	name, ok := payload.Claims["name"].(string)
 	if !ok || name == "" {
-		slog.ErrorContext(ctx, "Google token missing 'name' claim")
+		slog.WarnContext(ctx, "Google token missing 'name' claim")
 		return nil, fmt.Errorf("google token missing required claim: name")
 	}
 	avatarURL, _ := payload.Claims["picture"].(string) // optional, no error if missing

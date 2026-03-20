@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	"log/slog"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mzhryns/titik-nol-backend/internal/domain"
@@ -25,6 +26,7 @@ func handleDomainError(c *gin.Context, err error) {
 		errors.Is(err, domain.ErrInvalidCategoryType):
 		response.BadRequest(c, "Validation failed", err.Error())
 	default:
+		slog.ErrorContext(c.Request.Context(), "Unhandled domain error", "error", err)
 		response.InternalServerError(c, "Internal server error", err.Error())
 	}
 }
