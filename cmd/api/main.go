@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	delivery "github.com/mzhryns/titik-nol-backend/internal/delivery/http"
 	"github.com/mzhryns/titik-nol-backend/internal/delivery/http/middleware"
@@ -70,6 +71,19 @@ func main() {
 	r.Use(middleware.RequestID())
 	r.Use(middleware.Logger())
 	r.Use(gin.Recovery())
+
+	// Configure CORS
+	corsConfig := cors.DefaultConfig()
+	if cfg.CORSAllowOrigins != "" {
+		corsConfig.AllowOrigins = []string{cfg.CORSAllowOrigins}
+	} else {
+		corsConfig.AllowAllOrigins = true
+	}
+	corsConfig.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
+	r.Use(cors.New(corsConfig))
+
+	// Configure Rate Limiter
+	r.Use(middleware.RateLimiter(cfg.RateLimitRPS, cfg.RateLimitBurst))
 
 	// 9. Health Check
 	r.GET("/health", func(c *gin.Context) {

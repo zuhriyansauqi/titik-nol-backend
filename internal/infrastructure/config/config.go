@@ -31,6 +31,10 @@ type Config struct {
 	JWTIssuer        string `mapstructure:"JWT_ISSUER"`
 	JWTExpirySeconds int    `mapstructure:"JWT_EXPIRY_SECONDS"`
 	GoogleClientID   string `mapstructure:"GOOGLE_CLIENT_ID"`
+
+	CORSAllowOrigins string  `mapstructure:"CORS_ALLOW_ORIGINS"`
+	RateLimitRPS     float64 `mapstructure:"RATE_LIMIT_RPS"`
+	RateLimitBurst   int     `mapstructure:"RATE_LIMIT_BURST"`
 }
 
 func (c *Config) validate() error {

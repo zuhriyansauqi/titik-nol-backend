@@ -31,6 +31,12 @@ This project follows the **Conventional Commits** specification. Please refer to
 ### API Standards
 Consistency in API responses is crucial. Please follow the [API Response Standard](docs/api-response-standard.md) for all endpoints.
 
+### Testing Guidelines
+We maintain a strict convention for structuring unit tests, emphasizing top-level functions over nested subtests. Review the [Testing Guidelines](docs/testing-guidelines.md) before pushing code.
+
+### Logging Standards
+For consistency and proper structure, all application logs should use the slog package. Please refer to the [Logger Guidelines](docs/logger.md) for context-aware logging practices.
+
 ### Clean Architecture
 
 The project follows Clean Architecture principles. Ensure that business logic is kept in the `internal/domain` (or similar) layer and that dependencies point inwards.
