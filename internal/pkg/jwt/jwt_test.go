@@ -19,19 +19,20 @@ func TestGenerateAndValidateToken(t *testing.T) {
 	svc := newTestService()
 	userID := uuid.New()
 
-	token, err := svc.GenerateToken(userID)
+	token, err := svc.GenerateToken(userID, "USER")
 	require.NoError(t, err)
 	assert.NotEmpty(t, token)
 
-	parsedID, err := svc.ValidateToken(token)
+	parsedID, parsedRole, err := svc.ValidateToken(token)
 	require.NoError(t, err)
 	assert.Equal(t, userID, parsedID)
+	assert.Equal(t, "USER", parsedRole)
 }
 
 func TestValidateToken_Invalid(t *testing.T) {
 	svc := newTestService()
 
-	_, err := svc.ValidateToken("not-a-valid-token")
+	_, _, err := svc.ValidateToken("not-a-valid-token")
 	assert.Error(t, err)
 }
 
@@ -39,10 +40,10 @@ func TestValidateToken_WrongSecret(t *testing.T) {
 	svc1 := jwt.NewJWTService("secret-1", "issuer", 3600)
 	svc2 := jwt.NewJWTService("secret-2", "issuer", 3600)
 
-	token, err := svc1.GenerateToken(uuid.New())
+	token, err := svc1.GenerateToken(uuid.New(), "USER")
 	require.NoError(t, err)
 
-	_, err = svc2.ValidateToken(token)
+	_, _, err = svc2.ValidateToken(token)
 	assert.Error(t, err)
 }
 
@@ -52,6 +53,7 @@ func TestValidateToken_AlgorithmNone(t *testing.T) {
 	// Craft a token with alg:none to simulate an algorithm confusion attack
 	token := jwtlib.NewWithClaims(jwtlib.SigningMethodNone, &jwt.CustomClaims{
 		UserID: uuid.New(),
+		Role:   "USER",
 		RegisteredClaims: jwtlib.RegisteredClaims{
 			ExpiresAt: jwtlib.NewNumericDate(time.Now().Add(time.Hour)),
 			Issuer:    "test-issuer",
@@ -60,6 +62,6 @@ func TestValidateToken_AlgorithmNone(t *testing.T) {
 	tokenString, err := token.SignedString(jwtlib.UnsafeAllowNoneSignatureType)
 	require.NoError(t, err)
 
-	_, err = svc.ValidateToken(tokenString)
+	_, _, err = svc.ValidateToken(tokenString)
 	assert.Error(t, err)
 }

@@ -15,7 +15,13 @@ type AuthResponse struct {
 	IsNewUser   bool   `json:"is_new_user"`
 }
 
+type LoginRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+}
+
 type AuthUsecase interface {
 	LoginWithGoogle(ctx context.Context, req *GoogleLoginRequest) (*AuthResponse, error)
+	Login(ctx context.Context, req *LoginRequest) (*AuthResponse, error)
 	GetCurrentUser(ctx context.Context, userID uuid.UUID) (*User, error)
 }

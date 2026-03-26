@@ -66,3 +66,27 @@ func (u *userUsecase) Fetch(ctx context.Context, params domain.PaginationParams)
 		TotalPages: totalPages,
 	}, nil
 }
+func (u *userUsecase) UpdateProfile(ctx context.Context, userID uuid.UUID, req *domain.UpdateProfileRequest) (*domain.User, error) {
+	slog.InfoContext(ctx, "Updating user profile", "user_id", userID)
+
+	user, err := u.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		slog.ErrorContext(ctx, "User not found for profile update", "user_id", userID, "error", err)
+		return nil, domain.ErrNotFound
+	}
+
+	if req.Name != "" {
+		user.Name = req.Name
+	}
+	if req.AvatarURL != "" {
+		user.AvatarURL = req.AvatarURL
+	}
+
+	if err := u.userRepo.Update(ctx, user); err != nil {
+		slog.ErrorContext(ctx, "Failed to update user profile", "user_id", userID, "error", err)
+		return nil, err
+	}
+
+	slog.InfoContext(ctx, "User profile updated successfully", "user_id", userID)
+	return user, nil
+}

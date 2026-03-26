@@ -3,7 +3,6 @@ package http_test
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -71,7 +70,7 @@ func TestLoginWithGoogle_AuthError(t *testing.T) {
 	reqBody := domain.GoogleLoginRequest{IDToken: "bad-token"}
 	body, _ := json.Marshal(reqBody)
 
-	mockUC.On("LoginWithGoogle", mock.Anything, mock.AnythingOfType("*domain.GoogleLoginRequest")).Return(nil, errors.New("auth failed"))
+	mockUC.On("LoginWithGoogle", mock.Anything, mock.AnythingOfType("*domain.GoogleLoginRequest")).Return(nil, domain.ErrInvalidCredentials)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", "/auth/google", bytes.NewBuffer(body))

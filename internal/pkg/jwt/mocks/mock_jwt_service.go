@@ -9,12 +9,12 @@ type MockJWTService struct {
 	mock.Mock
 }
 
-func (m *MockJWTService) GenerateToken(userID uuid.UUID) (string, error) {
-	args := m.Called(userID)
+func (m *MockJWTService) GenerateToken(userID uuid.UUID, role string) (string, error) {
+	args := m.Called(userID, role)
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockJWTService) ValidateToken(tokenString string) (uuid.UUID, error) {
+func (m *MockJWTService) ValidateToken(tokenString string) (uuid.UUID, string, error) {
 	args := m.Called(tokenString)
-	return args.Get(0).(uuid.UUID), args.Error(1)
+	return args.Get(0).(uuid.UUID), args.String(1), args.Error(2)
 }

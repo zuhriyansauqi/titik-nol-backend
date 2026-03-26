@@ -22,6 +22,11 @@ var (
 	// Authorization errors
 	ErrForbidden = errors.New("forbidden: resource belongs to another user")
 
+	// Auth errors
+	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrPasswordNotSet     = errors.New("password not set for this account")
+	ErrInvalidTokenClaims = errors.New("token missing required claims")
+
 	// Validation errors
 	ErrNegativeBalance  = errors.New("initial balance cannot be negative")
 	ErrEmptyBulkRequest = errors.New("bulk request cannot be empty")

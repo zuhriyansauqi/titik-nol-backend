@@ -16,17 +16,84 @@ type UserHandler struct {
 	UserUsecase domain.UserUsecase
 }
 
-func NewUserHandler(rg *gin.RouterGroup, us domain.UserUsecase) {
+func NewUserHandler(rg *gin.RouterGroup, us domain.UserUsecase, adminMiddleware gin.HandlerFunc) {
 	handler := &UserHandler{
 		UserUsecase: us,
 	}
 
+	// Self-service profile routes (any authenticated user)
+	rg.GET("/users/me", handler.GetProfile)
+	rg.PUT("/users/me", handler.UpdateProfile)
+
+	// Admin-only routes
 	usersGroup := rg.Group("/users")
+	usersGroup.Use(adminMiddleware)
 	{
 		usersGroup.GET("", handler.Fetch)
 		usersGroup.GET("/:id", handler.GetByID)
 		usersGroup.POST("", handler.Create)
 	}
+}
+
+// GetProfile godoc
+// @Summary      Get own profile
+// @Description  Get the authenticated user's profile
+// @Tags         users
+// @Produce      json
+// @Success      200  {object}  response.Response{data=domain.User}
+// @Failure      401  {object}  response.Response
+// @Failure      404  {object}  response.Response
+// @Security     BearerAuth
+// @Router       /api/v1/users/me [get]
+func (h *UserHandler) GetProfile(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		response.Error(c, http.StatusUnauthorized, "Unauthorized", "User ID not found in context", nil)
+		return
+	}
+
+	user, err := h.UserUsecase.GetByID(c.Request.Context(), userID.(uuid.UUID))
+	if err != nil {
+		handleDomainError(c, err)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "User profile fetched successfully", user)
+}
+
+// UpdateProfile godoc
+// @Summary      Update own profile
+// @Description  Update the authenticated user's name or avatar
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        request body domain.UpdateProfileRequest true "Update Profile Request"
+// @Success      200  {object}  response.Response{data=domain.User}
+// @Failure      400  {object}  response.Response
+// @Failure      401  {object}  response.Response
+// @Failure      404  {object}  response.Response
+// @Security     BearerAuth
+// @Router       /api/v1/users/me [put]
+func (h *UserHandler) UpdateProfile(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		response.Error(c, http.StatusUnauthorized, "Unauthorized", "User ID not found in context", nil)
+		return
+	}
+
+	var req domain.UpdateProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Invalid request", err.Error())
+		return
+	}
+
+	user, err := h.UserUsecase.UpdateProfile(c.Request.Context(), userID.(uuid.UUID), &req)
+	if err != nil {
+		handleDomainError(c, err)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "User profile updated successfully", user)
 }
 
 // Create godoc

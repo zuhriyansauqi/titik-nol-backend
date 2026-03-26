@@ -41,7 +41,7 @@ func TestLoginWithGoogle_NewUser(t *testing.T) {
 	mockRepo.On("GetByProviderID", mock.Anything, "google-123").Return(nil, errors.New("not found"))
 	mockRepo.On("GetByEmail", mock.Anything, "new@example.com").Return(nil, errors.New("not found"))
 	mockRepo.On("Create", mock.Anything, mock.AnythingOfType("*domain.User")).Return(nil)
-	mockJWT.On("GenerateToken", mock.AnythingOfType("uuid.UUID")).Return("jwt-token", nil)
+	mockJWT.On("GenerateToken", mock.AnythingOfType("uuid.UUID"), mock.AnythingOfType("string")).Return("jwt-token", nil)
 
 	resp, err := uc.LoginWithGoogle(context.Background(), req)
 
@@ -63,7 +63,7 @@ func TestLoginWithGoogle_ExistingByProvider(t *testing.T) {
 
 	mockGoogle.On("VerifyIDToken", mock.Anything, "valid-token").Return(payload, nil)
 	mockRepo.On("GetByProviderID", mock.Anything, "google-123").Return(existingUser, nil)
-	mockJWT.On("GenerateToken", existingUser.ID).Return("jwt-token", nil)
+	mockJWT.On("GenerateToken", existingUser.ID, mock.AnythingOfType("string")).Return("jwt-token", nil)
 
 	resp, err := uc.LoginWithGoogle(context.Background(), req)
 
@@ -87,7 +87,7 @@ func TestLoginWithGoogle_ExistingByEmail(t *testing.T) {
 	mockRepo.On("GetByProviderID", mock.Anything, "google-456").Return(nil, errors.New("not found"))
 	mockRepo.On("GetByEmail", mock.Anything, "user@example.com").Return(existingUser, nil)
 	mockRepo.On("Update", mock.Anything, mock.AnythingOfType("*domain.User")).Return(nil)
-	mockJWT.On("GenerateToken", existingUser.ID).Return("jwt-token", nil)
+	mockJWT.On("GenerateToken", existingUser.ID, mock.AnythingOfType("string")).Return("jwt-token", nil)
 
 	resp, err := uc.LoginWithGoogle(context.Background(), req)
 
@@ -114,7 +114,7 @@ func TestLoginWithGoogle_MissingEmailClaim(t *testing.T) {
 
 	assert.Nil(t, resp)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "email")
+	assert.ErrorIs(t, err, domain.ErrInvalidTokenClaims)
 }
 
 func TestLoginWithGoogle_VerifyFails(t *testing.T) {

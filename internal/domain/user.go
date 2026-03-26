@@ -8,9 +8,14 @@ import (
 )
 
 type AuthProvider string
+type UserRole string
 
 const (
 	ProviderGoogle AuthProvider = "GOOGLE"
+	ProviderLocal  AuthProvider = "LOCAL"
+
+	RoleUser  UserRole = "USER"
+	RoleAdmin UserRole = "ADMIN"
 )
 
 type User struct {
@@ -19,7 +24,9 @@ type User struct {
 	Name       string       `gorm:"size:255;not null" json:"name"`
 	AvatarURL  string       `gorm:"column:avatar_url" json:"avatar_url"`
 	Provider   AuthProvider `gorm:"size:50;not null" json:"provider"`
-	ProviderID string       `gorm:"column:provider_id;size:255;uniqueIndex;not null" json:"provider_id"`
+	ProviderID string       `gorm:"column:provider_id;size:255;not null" json:"provider_id"`
+	Password   *string      `gorm:"column:password;size:255" json:"-"`
+	Role       UserRole     `gorm:"size:50;not null;default:'USER'" json:"role"`
 	CreatedAt  time.Time    `json:"created_at"`
 	UpdatedAt  time.Time    `json:"updated_at"`
 }
@@ -33,9 +40,15 @@ type UserRepository interface {
 	Fetch(ctx context.Context, params PaginationParams) ([]User, int, error)
 }
 
+type UpdateProfileRequest struct {
+	Name      string `json:"name"`
+	AvatarURL string `json:"avatar_url"`
+}
+
 type UserUsecase interface {
 	Create(ctx context.Context, user *User) error
 	GetByID(ctx context.Context, id uuid.UUID) (*User, error)
 	Fetch(ctx context.Context, params PaginationParams) (*PaginatedResult, error)
+	UpdateProfile(ctx context.Context, userID uuid.UUID, req *UpdateProfileRequest) (*User, error)
 }
 

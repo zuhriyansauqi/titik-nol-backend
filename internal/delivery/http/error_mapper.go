@@ -18,6 +18,12 @@ func handleDomainError(c *gin.Context, err error) {
 		response.NotFound(c, err.Error())
 	case errors.Is(err, domain.ErrForbidden):
 		response.NotFound(c, "resource not found")
+	case errors.Is(err, domain.ErrInvalidCredentials):
+		response.Error(c, 401, "Authentication failed", err.Error(), nil)
+	case errors.Is(err, domain.ErrPasswordNotSet):
+		response.Error(c, 401, "Authentication failed", err.Error(), nil)
+	case errors.Is(err, domain.ErrInvalidTokenClaims):
+		response.Error(c, 401, "Authentication failed", err.Error(), nil)
 	case errors.Is(err, domain.ErrValidationFailed),
 		errors.Is(err, domain.ErrNegativeBalance),
 		errors.Is(err, domain.ErrEmptyBulkRequest),

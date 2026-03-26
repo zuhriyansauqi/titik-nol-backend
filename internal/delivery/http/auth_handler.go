@@ -21,8 +21,36 @@ func NewAuthHandler(r *gin.Engine, authUsecase domain.AuthUsecase, authMiddlewar
 	authGroup := r.Group("/auth")
 	{
 		authGroup.POST("/google", handler.LoginWithGoogle)
+		authGroup.POST("/login", handler.Login)
 		authGroup.GET("/me", authMiddleware, handler.GetCurrentUser)
 	}
+}
+
+// Login godoc
+// @Summary      Login with email and password
+// @Description  Authenticate a user using email and password
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        request body domain.LoginRequest true "Login Request"
+// @Success      200  {object}  response.Response
+// @Failure      400  {object}  response.Response
+// @Failure      401  {object}  response.Response
+// @Router       /auth/login [post]
+func (h *AuthHandler) Login(c *gin.Context) {
+	var req domain.LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "Invalid request", err.Error())
+		return
+	}
+
+	res, err := h.AuthUsecase.Login(c.Request.Context(), &req)
+	if err != nil {
+		handleDomainError(c, err)
+		return
+	}
+
+	response.Success(c, http.StatusOK, "Login successful", res)
 }
 
 // LoginWithGoogle godoc
@@ -45,7 +73,7 @@ func (h *AuthHandler) LoginWithGoogle(c *gin.Context) {
 
 	res, err := h.AuthUsecase.LoginWithGoogle(c.Request.Context(), &req)
 	if err != nil {
-		response.Error(c, http.StatusUnauthorized, "Authentication failed", err.Error(), nil)
+		handleDomainError(c, err)
 		return
 	}
 

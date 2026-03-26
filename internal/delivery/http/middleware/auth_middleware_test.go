@@ -51,7 +51,7 @@ func TestAuthMiddleware_InvalidToken(t *testing.T) {
 	mockJWT := new(jwtmocks.MockJWTService)
 	r := setupMiddlewareRouter(mockJWT)
 
-	mockJWT.On("ValidateToken", "bad-token").Return(uuid.Nil, errors.New("invalid"))
+	mockJWT.On("ValidateToken", "bad-token").Return(uuid.Nil, "", errors.New("invalid"))
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/protected", nil)
@@ -66,7 +66,7 @@ func TestAuthMiddleware_ValidToken(t *testing.T) {
 	r := setupMiddlewareRouter(mockJWT)
 
 	userID := uuid.New()
-	mockJWT.On("ValidateToken", "valid-token").Return(userID, nil)
+	mockJWT.On("ValidateToken", "valid-token").Return(userID, "USER", nil)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/protected", nil)

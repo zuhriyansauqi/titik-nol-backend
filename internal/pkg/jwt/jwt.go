@@ -9,8 +9,8 @@ import (
 )
 
 type JWTService interface {
-	GenerateToken(userID uuid.UUID) (string, error)
-	ValidateToken(tokenString string) (uuid.UUID, error)
+	GenerateToken(userID uuid.UUID, role string) (string, error)
+	ValidateToken(tokenString string) (uuid.UUID, string, error)
 }
 
 type jwtService struct {
@@ -29,12 +29,14 @@ func NewJWTService(secretKey, issuer string, expirySeconds int) JWTService {
 
 type CustomClaims struct {
 	UserID uuid.UUID `json:"user_id"`
+	Role   string    `json:"role"`
 	jwt.RegisteredClaims
 }
 
-func (s *jwtService) GenerateToken(userID uuid.UUID) (string, error) {
+func (s *jwtService) GenerateToken(userID uuid.UUID, role string) (string, error) {
 	claims := &CustomClaims{
 		UserID: userID,
+		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(s.expirySeconds) * time.Second)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -46,7 +48,7 @@ func (s *jwtService) GenerateToken(userID uuid.UUID) (string, error) {
 	return token.SignedString([]byte(s.secretKey))
 }
 
-func (s *jwtService) ValidateToken(tokenString string) (uuid.UUID, error) {
+func (s *jwtService) ValidateToken(tokenString string) (uuid.UUID, string, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
@@ -55,13 +57,13 @@ func (s *jwtService) ValidateToken(tokenString string) (uuid.UUID, error) {
 	})
 
 	if err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, "", err
 	}
 
 	claims, ok := token.Claims.(*CustomClaims)
 	if !ok || !token.Valid {
-		return uuid.Nil, errors.New("invalid token")
+		return uuid.Nil, "", errors.New("invalid token")
 	}
 
-	return claims.UserID, nil
+	return claims.UserID, claims.Role, nil
 }

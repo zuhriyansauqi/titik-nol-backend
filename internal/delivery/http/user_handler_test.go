@@ -25,7 +25,7 @@ func setupUserRouter(mockUC *mocks.MockUserUsecase) *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
 	v1 := r.Group("/api/v1")
-	handler.NewUserHandler(v1, mockUC)
+	handler.NewUserHandler(v1, mockUC, func(c *gin.Context) { c.Next() })
 	return r
 }
 

@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	delivery "github.com/mzhryns/titik-nol-backend/internal/delivery/http"
 	"github.com/mzhryns/titik-nol-backend/internal/delivery/http/middleware"
+	"github.com/mzhryns/titik-nol-backend/internal/domain"
 	"github.com/mzhryns/titik-nol-backend/internal/infrastructure/config"
 	"github.com/mzhryns/titik-nol-backend/internal/infrastructure/database"
 	"github.com/mzhryns/titik-nol-backend/internal/infrastructure/logger"
@@ -136,7 +137,9 @@ func main() {
 	// API v1 routes (authenticated)
 	v1 := r.Group("/api/v1")
 	v1.Use(authMiddleware)
-	delivery.NewUserHandler(v1, userUsecase)
+	adminMiddleware := middleware.RequireRole(string(domain.RoleAdmin))
+	
+	delivery.NewUserHandler(v1, userUsecase, adminMiddleware)
 	delivery.NewAccountHandler(v1, accountUsecase)
 	delivery.NewTransactionHandler(v1, transactionUsecase)
 	delivery.NewOnboardingHandler(v1, onboardingUsecase)

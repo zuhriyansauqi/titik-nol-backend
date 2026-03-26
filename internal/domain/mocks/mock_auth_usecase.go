@@ -20,6 +20,14 @@ func (m *MockAuthUsecase) LoginWithGoogle(ctx context.Context, req *domain.Googl
 	return args.Get(0).(*domain.AuthResponse), args.Error(1)
 }
 
+func (m *MockAuthUsecase) Login(ctx context.Context, req *domain.LoginRequest) (*domain.AuthResponse, error) {
+	args := m.Called(ctx, req)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.AuthResponse), args.Error(1)
+}
+
 func (m *MockAuthUsecase) GetCurrentUser(ctx context.Context, userID uuid.UUID) (*domain.User, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {

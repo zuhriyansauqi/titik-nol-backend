@@ -32,3 +32,10 @@ func (m *MockUserUsecase) Fetch(ctx context.Context, params domain.PaginationPar
 	}
 	return args.Get(0).(*domain.PaginatedResult), args.Error(1)
 }
+func (m *MockUserUsecase) UpdateProfile(ctx context.Context, userID uuid.UUID, req *domain.UpdateProfileRequest) (*domain.User, error) {
+	args := m.Called(ctx, userID, req)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.User), args.Error(1)
+}
