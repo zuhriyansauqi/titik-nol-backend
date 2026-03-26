@@ -1,6 +1,6 @@
 # Titik Nol Backend
 
-Personal finance API built with Go, following Clean Architecture. Manages accounts, transactions, categories, and provides a dashboard summary — all behind Google SSO authentication.
+Personal finance API built with Go, following Clean Architecture. Manages accounts, transactions, categories, and provides a dashboard summary — with Google SSO and local email/password authentication, plus role-based access control.
 
 ## Tech Stack
 
@@ -9,7 +9,7 @@ Personal finance API built with Go, following Clean Architecture. Manages accoun
 | Language | Go 1.26+ |
 | Framework | Gin |
 | ORM | GORM + PostgreSQL |
-| Auth | Google SSO + JWT |
+| Auth | Google SSO + Local (email/password) + JWT |
 | Config | Viper |
 | Logging | `log/slog` (structured, context-aware) |
 | Testing | `testing` + testify |
@@ -19,13 +19,14 @@ Personal finance API built with Go, following Clean Architecture. Manages accoun
 
 ```
 cmd/api/              → Entrypoint
+cmd/cli/              → Admin CLI (manage admin users)
 internal/
   domain/             → Entities, interfaces, domain errors
   usecase/            → Business logic
   repository/         → Data access (GORM)
   delivery/http/      → Handlers + middleware (Gin)
   infrastructure/     → Config, database, logger
-  pkg/                → Shared packages (JWT, Google SSO, response helpers)
+  pkg/                → Shared packages (JWT, Google SSO, crypto, response helpers)
 migrations/           → SQL migrations (golang-migrate)
 ```
 
@@ -41,6 +42,8 @@ graph TD
         DH[DashboardHandler]
         CH[CategoryHandler]
         OH[OnboardingHandler]
+        ATH[AuthHandler]
+        UH[UserHandler]
     end
 
     subgraph "Usecase Layer"
@@ -50,10 +53,12 @@ graph TD
         CU[CategoryUsecase]
         OU[OnboardingUsecase]
         RU[ReconciliationService]
+        ATU[AuthUsecase]
+        UU[UserUsecase]
     end
 
     subgraph "Domain Layer"
-        DE[Entities: Account, Transaction, Category]
+        DE[Entities: User, Account, Transaction, Category]
         DI[Interfaces: Repository & Usecase]
         DR[Domain Errors]
     end
@@ -62,11 +67,13 @@ graph TD
         AR[AccountRepository]
         TR[TransactionRepository]
         CR[CategoryRepository]
+        UR[UserRepository]
     end
 
     subgraph "Infrastructure"
         DB[(PostgreSQL)]
         MW[Auth Middleware]
+        RM[Role Middleware]
     end
 
     AH --> AU
@@ -74,6 +81,8 @@ graph TD
     DH --> DU
     CH --> CU
     OH --> OU
+    ATH --> ATU
+    UH --> UU
 
     AU --> DI
     TU --> DI
@@ -81,16 +90,21 @@ graph TD
     CU --> DI
     OU --> DI
     RU --> DI
+    ATU --> DI
+    UU --> DI
 
     AR --> DB
     TR --> DB
     CR --> DB
+    UR --> DB
 
     MW --> AH
     MW --> TH
     MW --> DH
     MW --> CH
     MW --> OH
+    MW --> UH
+    RM --> UH
 ```
 
 ### Request Flow
@@ -99,14 +113,17 @@ graph TD
 sequenceDiagram
     participant C as Client
     participant MW as AuthMiddleware
+    participant RM as RoleMiddleware
     participant H as Handler
     participant UC as Usecase
     participant R as Repository
     participant DB as PostgreSQL
 
     C->>MW: HTTP Request + Bearer Token
-    MW->>MW: Validate JWT, extract user_id
-    MW->>H: Set user_id in context
+    MW->>MW: Validate JWT, extract user_id & role
+    MW->>RM: Set user_id and role in context
+    RM->>RM: Check role permissions (if required)
+    RM->>H: Forward request
     H->>H: Parse & validate request body
     H->>UC: Call usecase method(ctx, params)
     UC->>UC: Business logic & validation
@@ -175,14 +192,16 @@ The interactive API documentation is available via **Scalar**:
 Route groups overview:
 
 - `/health` — Health check
-- `/auth` — Google SSO login & current user
+- `/auth` — Google SSO login, local email/password login & current user
+- `/api/v1/users/me` — User profile (view & update own profile) 🔒
+- `/api/v1/users` — User management 🔒🛡️
 - `/api/v1/accounts` — Account CRUD 🔒
 - `/api/v1/transactions` — Transaction CRUD 🔒
 - `/api/v1/categories` — Category management 🔒
 - `/api/v1/onboarding` — Initial account setup 🔒
 - `/api/v1/dashboard` — Financial summary 🔒
 
-> 🔒 = Requires `Authorization: Bearer <token>` header.
+> 🔒 = Requires `Authorization: Bearer <token>` header. 🛡️ = Admin only.
 
 ## Database Schema
 
@@ -194,7 +213,9 @@ erDiagram
         VARCHAR name
         TEXT avatar_url
         VARCHAR provider
-        VARCHAR provider_id UK
+        VARCHAR provider_id
+        VARCHAR role "USER | ADMIN"
+        VARCHAR password "nullable, bcrypt"
         TIMESTAMPTZ created_at
         TIMESTAMPTZ updated_at
     }
@@ -237,6 +258,18 @@ erDiagram
     users ||--o{ transactions : has
     accounts ||--o{ transactions : has
     categories ||--o{ transactions : has
+```
+
+## Admin CLI
+
+Manage admin users via the CLI tool at `cmd/cli/admin.go`:
+
+```bash
+# Register a new admin
+go run cmd/cli/admin.go -action register -email admin@example.com -password secret123 -name "Admin Name"
+
+# Remove an admin
+go run cmd/cli/admin.go -action remove -email admin@example.com
 ```
 
 ## Make Commands
