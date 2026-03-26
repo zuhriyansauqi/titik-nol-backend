@@ -41,7 +41,7 @@ func NewUserHandler(rg *gin.RouterGroup, us domain.UserUsecase) {
 // @Failure      409  {object}  response.Response
 // @Failure      500  {object}  response.Response
 // @Security     BearerAuth
-// @Router       /users [post]
+// @Router       /api/v1/users [post]
 func (h *UserHandler) Create(c *gin.Context) {
 	var user domain.User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -72,7 +72,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 // @Failure      404  {object}  response.Response
 // @Failure      500  {object}  response.Response
 // @Security     BearerAuth
-// @Router       /users/{id} [get]
+// @Router       /api/v1/users/{id} [get]
 func (h *UserHandler) GetByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := uuid.Parse(idStr)
@@ -104,7 +104,7 @@ func (h *UserHandler) GetByID(c *gin.Context) {
 // @Success      200       {object}  response.Response
 // @Failure      500       {object}  response.Response
 // @Security     BearerAuth
-// @Router       /users [get]
+// @Router       /api/v1/users [get]
 func (h *UserHandler) Fetch(c *gin.Context) {
 	page := 1
 	perPage := 20

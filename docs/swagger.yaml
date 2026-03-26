@@ -273,7 +273,7 @@ info:
   title: Titik Nol API
   version: "1.0"
 paths:
-  /accounts:
+  /api/v1/accounts:
     get:
       description: Fetch all accounts belonging to the authenticated user
       produces:
@@ -335,7 +335,7 @@ paths:
       summary: Create a new account
       tags:
       - accounts
-  /accounts/{id}:
+  /api/v1/accounts/{id}:
     delete:
       description: Soft delete a specific account by ID
       parameters:
@@ -405,65 +405,7 @@ paths:
       summary: Update an account
       tags:
       - accounts
-  /auth/google:
-    post:
-      consumes:
-      - application/json
-      description: Authenticate a user using Google OAuth token
-      parameters:
-      - description: Google Login Request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/domain.GoogleLoginRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.Response'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.Response'
-      summary: Login with Google
-      tags:
-      - auth
-  /auth/me:
-    get:
-      description: Get the currently authenticated user's profile
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/domain.User'
-              type: object
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - BearerAuth: []
-      summary: Get current user
-      tags:
-      - auth
-  /categories:
+  /api/v1/categories:
     get:
       description: Fetch all categories belonging to the authenticated user
       parameters:
@@ -532,7 +474,7 @@ paths:
       summary: Create multiple categories
       tags:
       - categories
-  /dashboard:
+  /api/v1/dashboard:
     get:
       description: Fetch financial summary for the authenticated user's dashboard
       produces:
@@ -556,7 +498,7 @@ paths:
       summary: Get dashboard summary
       tags:
       - dashboard
-  /onboarding/accounts:
+  /api/v1/onboarding/accounts:
     post:
       consumes:
       - application/json
@@ -595,7 +537,7 @@ paths:
       summary: Setup initial accounts
       tags:
       - onboarding
-  /transactions:
+  /api/v1/transactions:
     get:
       description: Fetch a paginated list of transactions with optional filters
       parameters:
@@ -674,7 +616,7 @@ paths:
       summary: Create a new transaction
       tags:
       - transactions
-  /transactions/{id}:
+  /api/v1/transactions/{id}:
     delete:
       description: Soft delete a specific transaction by ID
       parameters:
@@ -744,7 +686,7 @@ paths:
       summary: Update a transaction
       tags:
       - transactions
-  /users:
+  /api/v1/users:
     get:
       description: Fetch a paginated list of users
       parameters:
@@ -812,7 +754,7 @@ paths:
       summary: Create a new user
       tags:
       - users
-  /users/{id}:
+  /api/v1/users/{id}:
     get:
       description: Fetch a single user by their UUID
       parameters:
@@ -850,6 +792,64 @@ paths:
       summary: Get user by ID
       tags:
       - users
+  /auth/google:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user using Google OAuth token
+      parameters:
+      - description: Google Login Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/domain.GoogleLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Login with Google
+      tags:
+      - auth
+  /auth/me:
+    get:
+      description: Get the currently authenticated user's profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/domain.User'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      summary: Get current user
+      tags:
+      - auth
 securityDefinitions:
   BearerAuth:
     description: Type "Bearer" followed by a space and JWT token.

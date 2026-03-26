@@ -29,7 +29,7 @@ func NewOnboardingHandler(rg *gin.RouterGroup, uc domain.OnboardingUsecase) {
 // @Failure      400  {object}  response.Response
 // @Failure      500  {object}  response.Response
 // @Security     BearerAuth
-// @Router       /onboarding/accounts [post]
+// @Router       /api/v1/onboarding/accounts [post]
 func (h *OnboardingHandler) SetupAccounts(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 

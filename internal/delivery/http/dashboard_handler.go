@@ -26,7 +26,7 @@ func NewDashboardHandler(rg *gin.RouterGroup, uc domain.DashboardUsecase) {
 // @Success      200  {object}  response.Response{data=domain.DashboardSummary}
 // @Failure      500  {object}  response.Response
 // @Security     BearerAuth
-// @Router       /dashboard [get]
+// @Router       /api/v1/dashboard [get]
 func (h *DashboardHandler) GetSummary(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 

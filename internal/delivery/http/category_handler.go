@@ -30,7 +30,7 @@ func NewCategoryHandler(rg *gin.RouterGroup, uc domain.CategoryUsecase) {
 // @Failure      400  {object}  response.Response
 // @Failure      500  {object}  response.Response
 // @Security     BearerAuth
-// @Router       /categories [post]
+// @Router       /api/v1/categories [post]
 func (h *CategoryHandler) BulkCreate(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 
@@ -58,7 +58,7 @@ func (h *CategoryHandler) BulkCreate(c *gin.Context) {
 // @Success      200    {object}  response.Response{data=[]domain.Category}
 // @Failure      500    {object}  response.Response
 // @Security     BearerAuth
-// @Router       /categories [get]
+// @Router       /api/v1/categories [get]
 func (h *CategoryHandler) Fetch(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 

@@ -32,7 +32,7 @@ func NewAccountHandler(rg *gin.RouterGroup, uc domain.AccountUsecase) {
 // @Failure      400  {object}  response.Response
 // @Failure      500  {object}  response.Response
 // @Security     BearerAuth
-// @Router       /accounts [post]
+// @Router       /api/v1/accounts [post]
 func (h *AccountHandler) Create(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 
@@ -59,7 +59,7 @@ func (h *AccountHandler) Create(c *gin.Context) {
 // @Success      200  {object}  response.Response{data=[]domain.Account}
 // @Failure      500  {object}  response.Response
 // @Security     BearerAuth
-// @Router       /accounts [get]
+// @Router       /api/v1/accounts [get]
 func (h *AccountHandler) Fetch(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 
@@ -84,7 +84,7 @@ func (h *AccountHandler) Fetch(c *gin.Context) {
 // @Failure      400     {object}  response.Response
 // @Failure      500     {object}  response.Response
 // @Security     BearerAuth
-// @Router       /accounts/{id} [put]
+// @Router       /api/v1/accounts/{id} [put]
 func (h *AccountHandler) Update(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 
@@ -119,7 +119,7 @@ func (h *AccountHandler) Update(c *gin.Context) {
 // @Failure      400  {object}  response.Response
 // @Failure      500  {object}  response.Response
 // @Security     BearerAuth
-// @Router       /accounts/{id} [delete]
+// @Router       /api/v1/accounts/{id} [delete]
 func (h *AccountHandler) Delete(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 

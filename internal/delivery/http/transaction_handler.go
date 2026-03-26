@@ -33,7 +33,7 @@ func NewTransactionHandler(rg *gin.RouterGroup, uc domain.TransactionUsecase) {
 // @Failure      400  {object}  response.Response
 // @Failure      500  {object}  response.Response
 // @Security     BearerAuth
-// @Router       /transactions [post]
+// @Router       /api/v1/transactions [post]
 func (h *TransactionHandler) Create(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 
@@ -64,7 +64,7 @@ func (h *TransactionHandler) Create(c *gin.Context) {
 // @Success      200                {object}  response.Response{data=[]domain.Transaction}
 // @Failure      500                {object}  response.Response
 // @Security     BearerAuth
-// @Router       /transactions [get]
+// @Router       /api/v1/transactions [get]
 func (h *TransactionHandler) Fetch(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 
@@ -124,7 +124,7 @@ func (h *TransactionHandler) Fetch(c *gin.Context) {
 // @Failure      400     {object}  response.Response
 // @Failure      500     {object}  response.Response
 // @Security     BearerAuth
-// @Router       /transactions/{id} [put]
+// @Router       /api/v1/transactions/{id} [put]
 func (h *TransactionHandler) Update(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 
@@ -159,7 +159,7 @@ func (h *TransactionHandler) Update(c *gin.Context) {
 // @Failure      400  {object}  response.Response
 // @Failure      500  {object}  response.Response
 // @Security     BearerAuth
-// @Router       /transactions/{id} [delete]
+// @Router       /api/v1/transactions/{id} [delete]
 func (h *TransactionHandler) Delete(c *gin.Context) {
 	userID, _ := c.Get("user_id")
 
