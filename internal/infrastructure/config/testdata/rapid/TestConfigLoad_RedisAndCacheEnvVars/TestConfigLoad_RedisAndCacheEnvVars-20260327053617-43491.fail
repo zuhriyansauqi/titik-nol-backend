@@ -1,0 +1,49 @@
+# 2026/03/27 05:36:17.447883 [TestConfigLoad_RedisAndCacheEnvVars] [rapid] draw host: "a"
+# 2026/03/27 05:36:17.447890 [TestConfigLoad_RedisAndCacheEnvVars] [rapid] draw port: 1024
+# 2026/03/27 05:36:17.447891 [TestConfigLoad_RedisAndCacheEnvVars] [rapid] draw password: ""
+# 2026/03/27 05:36:17.447892 [TestConfigLoad_RedisAndCacheEnvVars] [rapid] draw db: 0
+# 2026/03/27 05:36:17.447892 [TestConfigLoad_RedisAndCacheEnvVars] [rapid] draw enabled: false
+# 2026/03/27 05:36:17.447893 [TestConfigLoad_RedisAndCacheEnvVars] [rapid] draw defaultTTLMin: 1
+# 2026/03/27 05:36:17.447893 [TestConfigLoad_RedisAndCacheEnvVars] [rapid] draw categoryTTLMin: 1
+# 2026/03/27 05:36:17.447894 [TestConfigLoad_RedisAndCacheEnvVars] [rapid] draw dashboardTTLMin: 1
+# 2026/03/27 05:36:17.447894 [TestConfigLoad_RedisAndCacheEnvVars] [rapid] draw userTTLMin: 1
+# 2026/03/27 05:36:17.447898 [TestConfigLoad_RedisAndCacheEnvVars] [rapid] draw accountTTLMin: 1
+# 2026/03/27 05:36:17.448008 [TestConfigLoad_RedisAndCacheEnvVars] 
+# 	Error Trace:	/Users/mzhryns/Documents/Code/titik-nol-backend/internal/infrastructure/config/config_property_test.go:84
+# 	            				/Users/mzhryns/go/1.26.1/pkg/mod/pgregory.net/rapid@v1.2.0/engine.go:371
+# 	            				/Users/mzhryns/go/1.26.1/pkg/mod/pgregory.net/rapid@v1.2.0/engine.go:380
+# 	            				/Users/mzhryns/go/1.26.1/pkg/mod/pgregory.net/rapid@v1.2.0/engine.go:205
+# 	            				/Users/mzhryns/go/1.26.1/pkg/mod/pgregory.net/rapid@v1.2.0/engine.go:120
+# 	            				/Users/mzhryns/Documents/Code/titik-nol-backend/internal/infrastructure/config/config_property_test.go:34
+# 	Error:      	Received unexpected error:
+# 	            	required config APP_PORT is not set
+# 	Test:       	TestConfigLoad_RedisAndCacheEnvVars
+# 
+v0.4.8#3617652097739397713
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0

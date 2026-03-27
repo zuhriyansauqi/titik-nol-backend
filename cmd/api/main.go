@@ -14,6 +14,7 @@ import (
 	delivery "github.com/mzhryns/titik-nol-backend/internal/delivery/http"
 	"github.com/mzhryns/titik-nol-backend/internal/delivery/http/middleware"
 	"github.com/mzhryns/titik-nol-backend/internal/domain"
+	"github.com/mzhryns/titik-nol-backend/internal/infrastructure/cache"
 	"github.com/mzhryns/titik-nol-backend/internal/infrastructure/config"
 	"github.com/mzhryns/titik-nol-backend/internal/infrastructure/database"
 	"github.com/mzhryns/titik-nol-backend/internal/infrastructure/logger"
@@ -69,22 +70,35 @@ func main() {
 	txRepo := repository.NewTransactionRepository(db)
 	catRepo := repository.NewCategoryRepository(db)
 
-	// 6. Initialize Services & Usecase
+	// 6. Initialize Redis & Cache Decorators
+	redisClient := cache.NewRedisClient(cfg)
+	defer func() {
+		if err := redisClient.Close(); err != nil {
+			slog.Error("Failed to close Redis connection", "error", err)
+		}
+	}()
+
+	cachedCatRepo := cache.NewCategoryCacheDecorator(catRepo, redisClient, cfg)
+	cachedAccRepo := cache.NewAccountCacheDecorator(accRepo, redisClient, cfg)
+	cachedUserRepo := cache.NewUserCacheDecorator(userRepo, redisClient, cfg)
+
+	// 7. Initialize Services & Usecase
 	jwtService := jwt.NewJWTService(cfg.JWTSecret, cfg.JWTIssuer, cfg.JWTExpirySeconds)
 	googleSSO := google.NewGoogleSSOService(cfg.GoogleClientID)
 
-	userUsecase := usecase.NewUserUsecase(userRepo)
-	authUsecase := usecase.NewAuthUsecase(userRepo, googleSSO, jwtService)
-	accountUsecase := usecase.NewAccountUsecase(accRepo, txRepo, db)
-	transactionUsecase := usecase.NewTransactionUsecase(txRepo, accRepo, catRepo, db)
-	onboardingUsecase := usecase.NewOnboardingUsecase(accRepo, txRepo, db)
-	dashboardUsecase := usecase.NewDashboardUsecase(accRepo, txRepo, catRepo)
-	categoryUsecase := usecase.NewCategoryUsecase(catRepo, db)
+	userUsecase := usecase.NewUserUsecase(cachedUserRepo)
+	authUsecase := usecase.NewAuthUsecase(cachedUserRepo, googleSSO, jwtService)
+	accountUsecase := usecase.NewAccountUsecase(cachedAccRepo, txRepo, db)
+	transactionUsecase := usecase.NewTransactionUsecase(txRepo, cachedAccRepo, cachedCatRepo, db)
+	onboardingUsecase := usecase.NewOnboardingUsecase(cachedAccRepo, txRepo, db)
+	dashboardUsecase := usecase.NewDashboardUsecase(cachedAccRepo, txRepo, cachedCatRepo)
+	cachedDashboardUsecase := cache.NewDashboardCacheUsecase(dashboardUsecase, redisClient, cfg)
+	categoryUsecase := usecase.NewCategoryUsecase(cachedCatRepo, db)
 
-	// 7. Initialize Middleware
+	// 8. Initialize Middleware
 	authMiddleware := middleware.AuthMiddleware(jwtService)
 
-	// 8. Initialize Gin Engine
+	// 9. Initialize Gin Engine
 	r := gin.New()
 	r.Use(middleware.RequestID())
 	r.Use(middleware.Logger())
@@ -103,7 +117,7 @@ func main() {
 	// Configure Rate Limiter
 	r.Use(middleware.RateLimiter(cfg.RateLimitRPS, cfg.RateLimitBurst))
 
-	// 9. API Documentation (Swagger + Scalar)
+	// 10. API Documentation (Swagger + Scalar)
 	r.StaticFile("/docs/swagger.json", "./docs/swagger.json")
 	r.GET("/docs/api", func(c *gin.Context) {
 		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(`
@@ -122,7 +136,7 @@ func main() {
 		`))
 	})
 
-	// 10. Health Check
+	// 11. Health Check
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "UP",
@@ -130,7 +144,7 @@ func main() {
 		})
 	})
 
-	// 10. Setup Handlers
+	// 12. Setup Handlers
 
 	delivery.NewAuthHandler(r, authUsecase, authMiddleware)
 
@@ -143,10 +157,10 @@ func main() {
 	delivery.NewAccountHandler(v1, accountUsecase)
 	delivery.NewTransactionHandler(v1, transactionUsecase)
 	delivery.NewOnboardingHandler(v1, onboardingUsecase)
-	delivery.NewDashboardHandler(v1, dashboardUsecase)
+	delivery.NewDashboardHandler(v1, cachedDashboardUsecase)
 	delivery.NewCategoryHandler(v1, categoryUsecase)
 
-	// 11. Graceful Shutdown
+	// 13. Graceful Shutdown
 	srv := &http.Server{
 		Addr:              ":" + cfg.AppPort,
 		Handler:           r.Handler(),

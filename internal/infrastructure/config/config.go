@@ -35,6 +35,18 @@ type Config struct {
 	CORSAllowOrigins string  `mapstructure:"CORS_ALLOW_ORIGINS"`
 	RateLimitRPS     float64 `mapstructure:"RATE_LIMIT_RPS"`
 	RateLimitBurst   int     `mapstructure:"RATE_LIMIT_BURST"`
+
+	RedisHost     string `mapstructure:"REDIS_HOST"`
+	RedisPort     string `mapstructure:"REDIS_PORT"`
+	RedisPassword string `mapstructure:"REDIS_PASSWORD"`
+	RedisDB       int    `mapstructure:"REDIS_DB"`
+
+	CacheEnabled      bool          `mapstructure:"CACHE_ENABLED"`
+	CacheDefaultTTL   time.Duration `mapstructure:"CACHE_DEFAULT_TTL"`
+	CacheCategoryTTL  time.Duration `mapstructure:"CACHE_CATEGORY_TTL"`
+	CacheDashboardTTL time.Duration `mapstructure:"CACHE_DASHBOARD_TTL"`
+	CacheUserTTL      time.Duration `mapstructure:"CACHE_USER_TTL"`
+	CacheAccountTTL   time.Duration `mapstructure:"CACHE_ACCOUNT_TTL"`
 }
 
 func (c *Config) validate() error {
@@ -60,6 +72,19 @@ func (c *Config) validate() error {
 func LoadConfig() (*Config, error) {
 	viper.SetConfigFile(".env")
 	viper.AutomaticEnv()
+
+	// Redis defaults
+	viper.SetDefault("REDIS_HOST", "localhost")
+	viper.SetDefault("REDIS_PORT", "6379")
+	viper.SetDefault("REDIS_DB", 0)
+
+	// Cache defaults
+	viper.SetDefault("CACHE_ENABLED", true)
+	viper.SetDefault("CACHE_DEFAULT_TTL", 5*time.Minute)
+	viper.SetDefault("CACHE_CATEGORY_TTL", 30*time.Minute)
+	viper.SetDefault("CACHE_DASHBOARD_TTL", 2*time.Minute)
+	viper.SetDefault("CACHE_USER_TTL", 10*time.Minute)
+	viper.SetDefault("CACHE_ACCOUNT_TTL", 5*time.Minute)
 
 	if err := viper.ReadInConfig(); err != nil {
 		slog.Warn("Warning: .env file not found, using environment variables")

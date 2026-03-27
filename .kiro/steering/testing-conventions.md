@@ -70,7 +70,45 @@ Set explicit expectations for every test scenario:
 mockUC.On("GetByID", mock.Anything, userID).Return(expectedUser, nil)
 ```
 
-## 6. Running Tests
+## 6. Property-Based Testing
+
+Library: `pgregory.net/rapid` — generates random inputs and runs each test 100+ iterations.
+
+- Use `rapid.Check(t, func(rt *rapid.T) { ... })` inside a top-level test function
+- Use `rt` (rapid.T) for generators (`rapid.StringMatching`, `rapid.IntRange`, etc.)
+- Use `t` (testing.T) for assertions (`assert.Equal`, `require.NoError`)
+- Flush shared state between iterations when reusing resources (e.g., `rc.client.FlushAll`)
+
+```go
+func TestComponent_PropertyName(t *testing.T) {
+    rc, _ := newTestRedisClient(t)
+    rapid.Check(t, func(rt *rapid.T) {
+        _ = rc.client.FlushAll(context.Background())
+        userID := genUUID(rt, "user_id")
+        // ... test logic using rt for generation, t for assertions
+    })
+}
+```
+
+## 7. In-Memory Redis for Tests
+
+Library: `github.com/alicebob/miniredis/v2` — pure-Go in-memory Redis server for testing.
+
+- Use `miniredis.RunT(t)` to start a server scoped to the test
+- Create a `RedisClient` pointing at `mr.Addr()`
+- Use `mr.Exists(key)` to verify key presence/absence directly
+- No real Redis instance needed
+
+```go
+func newTestRedisClient(t *testing.T) (*RedisClient, *miniredis.Miniredis) {
+    t.Helper()
+    mr := miniredis.RunT(t)
+    client := redis.NewClient(&redis.Options{Addr: mr.Addr()})
+    return &RedisClient{client: client}, mr
+}
+```
+
+## 8. Running Tests
 
 - `make test` — all tests
 - `make test-v` — verbose

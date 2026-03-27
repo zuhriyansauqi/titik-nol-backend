@@ -11,6 +11,6 @@
   },
   "then": {
     "type": "runCommand",
-    "command": "make lint"
+    "command": "cd \"$(git rev-parse --show-toplevel)\" && golangci-lint run"
   }
 }
