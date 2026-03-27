@@ -12,7 +12,8 @@ Personal finance API built with Go, following Clean Architecture. Manages accoun
 | Auth | Google SSO + Local (email/password) + JWT |
 | Config | Viper |
 | Logging | `log/slog` (structured, context-aware) |
-| Testing | `testing` + testify |
+| Caching | Redis (go-redis/v9) — decorator pattern |
+| Testing | `testing` + testify + rapid (PBT) |
 | Infra | Docker + Docker Compose |
 
 ## Architecture
@@ -25,7 +26,7 @@ internal/
   usecase/            → Business logic
   repository/         → Data access (GORM)
   delivery/http/      → Handlers + middleware (Gin)
-  infrastructure/     → Config, database, logger
+  infrastructure/     → Config, database, logger, cache (Redis decorators)
   pkg/                → Shared packages (JWT, Google SSO, crypto, response helpers)
 migrations/           → SQL migrations (golang-migrate)
 ```
@@ -52,9 +53,15 @@ graph TD
         DU[DashboardUsecase]
         CU[CategoryUsecase]
         OU[OnboardingUsecase]
-        RU[ReconciliationService]
         ATU[AuthUsecase]
         UU[UserUsecase]
+    end
+
+    subgraph "Cache Layer (Decorators)"
+        CAR[AccountCacheDecorator]
+        CCR[CategoryCacheDecorator]
+        CUR[UserCacheDecorator]
+        CDU[DashboardCacheUsecase]
     end
 
     subgraph "Domain Layer"
@@ -72,26 +79,36 @@ graph TD
 
     subgraph "Infrastructure"
         DB[(PostgreSQL)]
+        RD[(Redis)]
         MW[Auth Middleware]
         RM[Role Middleware]
     end
 
     AH --> AU
     TH --> TU
-    DH --> DU
+    DH --> CDU
     CH --> CU
     OH --> OU
     ATH --> ATU
     UH --> UU
+
+    CDU --> DU
+    CDU --> RD
 
     AU --> DI
     TU --> DI
     DU --> DI
     CU --> DI
     OU --> DI
-    RU --> DI
     ATU --> DI
     UU --> DI
+
+    CAR --> AR
+    CAR --> RD
+    CCR --> CR
+    CCR --> RD
+    CUR --> UR
+    CUR --> RD
 
     AR --> DB
     TR --> DB
@@ -116,6 +133,8 @@ sequenceDiagram
     participant RM as RoleMiddleware
     participant H as Handler
     participant UC as Usecase
+    participant CD as Cache Decorator
+    participant RD as Redis
     participant R as Repository
     participant DB as PostgreSQL
 
@@ -127,13 +146,35 @@ sequenceDiagram
     H->>H: Parse & validate request body
     H->>UC: Call usecase method(ctx, params)
     UC->>UC: Business logic & validation
-    UC->>R: Database operations
-    R->>DB: SQL query (within tx if needed)
-    DB-->>R: Result
-    R-->>UC: Domain entities
+    UC->>CD: Repository call (via decorator)
+    CD->>RD: Check cache
+    alt Cache hit
+        RD-->>CD: Cached data
+        CD-->>UC: Return cached result
+    else Cache miss
+        CD->>R: Delegate to repository
+        R->>DB: SQL query (within tx if needed)
+        DB-->>R: Result
+        R-->>CD: Domain entities
+        CD->>RD: Store in cache (with TTL)
+        CD-->>UC: Return result
+    end
     UC-->>H: Result / error
     H-->>C: JSON response (via response package)
 ```
+
+### Caching Strategy
+
+The caching layer uses the decorator pattern — cache decorators wrap repository/usecase interfaces without modifying the usecase layer. All caching is wired in `main.go`.
+
+| Entity | Cache Key Pattern | TTL | Invalidation |
+|--------|------------------|-----|--------------|
+| Category | `titik-nol:category:*:<user_id>` | 30m | On create |
+| Account | `titik-nol:account:*:<user_id>` | 5m | On create, update, delete, balance change |
+| User | `titik-nol:user:<user_id>` | 10m | On update |
+| Dashboard | `titik-nol:dashboard:<user_id>` | 2m | On account writes (cross-entity) |
+
+Graceful degradation: if Redis is unavailable, all operations fall through to PostgreSQL transparently. Caching can be disabled entirely via `CACHE_ENABLED=false`.
 
 ## Getting Started
 
@@ -163,7 +204,7 @@ The API will be available at `http://localhost:8080`.
 ### Running Locally (without Docker)
 
 ```bash
-# Make sure PostgreSQL is running and .env is configured
+# Make sure PostgreSQL and Redis are running and .env is configured
 make run
 ```
 
